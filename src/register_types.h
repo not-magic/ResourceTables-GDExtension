@@ -4,5 +4,5 @@
 
 using namespace godot;
 
-void initialize_starter_template_module(ModuleInitializationLevel p_level);
-void uninitialize_starter_template_module(ModuleInitializationLevel p_level);
+void initialize_resource_tables_module(ModuleInitializationLevel p_level);
+void uninitialize_resource_tables_module(ModuleInitializationLevel p_level);

@@ -5,9 +5,9 @@
 *.o
 
 # Built extension binaries
-project/addons/StarterTemplate/bin/*.so
-project/addons/StarterTemplate/bin/*.dylib
-project/addons/StarterTemplate/bin/*.dll
+project/addons/ResourceTables/bin/*.so
+project/addons/ResourceTables/bin/*.dylib
+project/addons/ResourceTables/bin/*.dll
 
 # Test binaries
 tests/bin/

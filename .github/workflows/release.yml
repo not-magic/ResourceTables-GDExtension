@@ -1,9 +1,9 @@
 name: Release
 
 # Builds template_debug + template_release for linux/windows/macos, then
-# packages project/addons/StarterTemplate/ (source-free, binaries for every
+# packages project/addons/ResourceTables/ (source-free, binaries for every
 # platform included) into a zip attached to a GitHub Release. The zip's
-# internal layout is addons/StarterTemplate/..., so it extracts directly
+# internal layout is addons/ResourceTables/..., so it extracts directly
 # into a project's root (res://). That zip is what's meant to be
 # distributed -- either linked directly, or used as the "Custom" download
 # URL in a Godot Asset Library submission, since the Asset Library's
@@ -81,11 +81,11 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
-          name: starter-template-bin-${{ matrix.platform }}
+          name: resource-tables-bin-${{ matrix.platform }}
           path: |
-            project/addons/StarterTemplate/bin/*.so
-            project/addons/StarterTemplate/bin/*.dll
-            project/addons/StarterTemplate/bin/*.dylib
+            project/addons/ResourceTables/bin/*.so
+            project/addons/ResourceTables/bin/*.dll
+            project/addons/ResourceTables/bin/*.dylib
 
   package:
     name: Package addon
@@ -99,19 +99,19 @@ jobs:
       - name: Download binaries for every platform
         uses: actions/download-artifact@v8
         with:
-          pattern: starter-template-bin-*
-          path: project/addons/StarterTemplate/bin
+          pattern: resource-tables-bin-*
+          path: project/addons/ResourceTables/bin
           merge-multiple: true
 
       - name: Zip addon
         run: |
-          cp LICENSE project/addons/StarterTemplate/LICENSE
+          cp LICENSE project/addons/ResourceTables/LICENSE
           cd project
-          zip -r "${{ github.workspace }}/StarterTemplate.zip" addons/StarterTemplate
+          zip -r "${{ github.workspace }}/ResourceTables.zip" addons/ResourceTables
 
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: StarterTemplate.zip
+          files: ResourceTables.zip
           generate_release_notes: true

@@ -1,9 +1,19 @@
 [gd_scene format=3 uid="uid://c0j58gqjq8u8h"]
 
-[ext_resource type="Texture2D" uid="uid://dewig036g2vro" path="res://icon.svg" id="1"]
+[ext_resource type="Shader" uid="uid://dw4wgpearai5w" path="res://test_shader.gdshader" id="2_0xm2m"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_s5fb5"]
+render_priority = 0
+shader = ExtResource("2_0xm2m")
+
+[sub_resource type="SphereMesh" id="SphereMesh_nqwlg"]
+material = SubResource("ShaderMaterial_s5fb5")
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_m0nv1"]
 
 [node name="Main" type="Node2D" unique_id=547416149]
 
-[node name="GDExample" type="GDExample" parent="." unique_id=410932432]
-position = Vector2(3.5901775, 1.3309304)
-texture = ExtResource("1")
+[node name="MeshInstance2D" type="MeshInstance2D" parent="." unique_id=627594733]
+position = Vector2(0.0069185286, 0.8715561)
+mesh = SubResource("SphereMesh_nqwlg")
+texture = SubResource("PlaceholderTexture2D_m0nv1")

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AAA" format=3 uid="uid://kdqj8bjqximk"]
+
+[ext_resource type="Script" uid="uid://cf4tlu2d3xhsb" path="res://ResourceTypes/AAA.gd" id="1_al48j"]
+
+[resource]
+script = ExtResource("1_al48j")
+int_val = 9
+str_val = "string 1"
+flt_val = 1.0
+metadata/_custom_type_script = "uid://cf4tlu2d3xhsb"

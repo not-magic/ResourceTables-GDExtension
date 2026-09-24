@@ -5,7 +5,7 @@ import sys
 # You can find documentation for SCons and SConstruct files at:
 # https://scons.org/documentation.html
 
-ADDON_NAME = 'StarterTemplate'
+ADDON_NAME = 'ResourceTables'
 
 
 # This lets SCons know that we're using godot-cpp, from the godot-cpp folder.

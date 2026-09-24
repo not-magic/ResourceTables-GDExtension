@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="BBB" format=3 uid="uid://cddik6kjam0bi"]
+
+[ext_resource type="Script" uid="uid://cmnwvftywh6iu" path="res://ResourceTypes/BBB.gd" id="1_ga4yi"]
+[ext_resource type="Resource" uid="uid://dkaipab8kgwwl" path="res://AAA_0.tres" id="1_sguaj"]
+
+[resource]
+script = ExtResource("1_ga4yi")
+aaa = ExtResource("1_sguaj")
+metadata/_custom_type_script = "uid://cmnwvftywh6iu"

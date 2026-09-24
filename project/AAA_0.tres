@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AAA" format=3 uid="uid://dkaipab8kgwwl"]
+
+[ext_resource type="Script" uid="uid://cf4tlu2d3xhsb" path="res://ResourceTypes/AAA.gd" id="1_ufoxm"]
+
+[resource]
+script = ExtResource("1_ufoxm")
+flt_val = 1.13
+int_val2 = 12
+metadata/_custom_type_script = "uid://cf4tlu2d3xhsb"

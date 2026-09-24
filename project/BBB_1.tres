@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BBB" format=3 uid="uid://d7kjnvyebcmy"]
+
+[ext_resource type="Resource" uid="uid://dkaipab8kgwwl" path="res://AAA_0.tres" id="1_dgf8n"]
+[ext_resource type="Script" uid="uid://cmnwvftywh6iu" path="res://ResourceTypes/BBB.gd" id="2_0isyx"]
+
+[resource]
+script = ExtResource("2_0isyx")
+vec_value = Vector3(1, 0, 0)
+aaa = ExtResource("1_dgf8n")
+metadata/_custom_type_script = "uid://cmnwvftywh6iu"
