@@ -1,0 +1,30 @@
+# SCons
+.sconsign.dblite
+.sconf_temp/
+*.os
+*.o
+
+# Built extension binaries
+project/addons/StarterTemplate/bin/*.so
+project/addons/StarterTemplate/bin/*.dylib
+project/addons/StarterTemplate/bin/*.dll
+
+# Test binaries
+tests/bin/
+
+# godot-cpp build output
+godot-cpp/bin/
+godot-cpp/gen/
+
+# Generated doc data (from doc_classes/*.xml via SConstruct)
+src/gen/
+
+# Generated wiki Markdown (from doc_classes/*.xml via tools/generate_docs.py)
+docs/
+
+# Godot editor cache/import data
+project/.godot/
+project/icon.svg.import
+
+# Sublime local stuff
+*.sublime-workspace

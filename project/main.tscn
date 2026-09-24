@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://c0j58gqjq8u8h"]
+
+[ext_resource type="Texture2D" uid="uid://dewig036g2vro" path="res://icon.svg" id="1"]
+
+[node name="Main" type="Node2D" unique_id=547416149]
+
+[node name="GDExample" type="GDExample" parent="." unique_id=410932432]
+position = Vector2(3.5901775, 1.3309304)
+texture = ExtResource("1")

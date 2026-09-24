@@ -1,0 +1,117 @@
+name: Release
+
+# Builds template_debug + template_release for linux/windows/macos, then
+# packages project/addons/StarterTemplate/ (source-free, binaries for every
+# platform included) into a zip attached to a GitHub Release. The zip's
+# internal layout is addons/StarterTemplate/..., so it extracts directly
+# into a project's root (res://). That zip is what's meant to be
+# distributed -- either linked directly, or used as the "Custom" download
+# URL in a Godot Asset Library submission, since the Asset Library's
+# GitHub-commit-based download can't include build output that
+# (deliberately) isn't committed to the repo.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and release (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            os: ubuntu-latest
+          - platform: windows
+            os: windows-latest
+          - platform: macos
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install SCons
+        run: pip install scons
+
+      # Pinned godot-cpp commit, so bumping the submodule invalidates the
+      # cache key too.
+      - name: Get submodule revisions
+        id: submodules
+        shell: bash
+        run: echo "hash=$(git submodule status | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache SCons build
+        uses: actions/cache@v6
+        with:
+          path: .scons_cache
+          key: scons-release-${{ matrix.platform }}-${{ hashFiles('src/**', 'SConstruct') }}-${{ steps.submodules.outputs.hash }}
+          restore-keys: |
+            scons-release-${{ matrix.platform }}-
+
+      # Runs the standalone (no godot-cpp) test in tests/ against template_debug
+      # as a sanity check before spending time on the release build.
+      - name: Build and test template_debug
+        env:
+          SCONS_CACHE: ${{ github.workspace }}/.scons_cache
+        run: |
+          scons platform=${{ matrix.platform }} target=template_debug
+          scons tests
+
+      - name: Build template_release
+        env:
+          SCONS_CACHE: ${{ github.workspace }}/.scons_cache
+        run: scons platform=${{ matrix.platform }} target=template_release
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: starter-template-bin-${{ matrix.platform }}
+          path: |
+            project/addons/StarterTemplate/bin/*.so
+            project/addons/StarterTemplate/bin/*.dll
+            project/addons/StarterTemplate/bin/*.dylib
+
+  package:
+    name: Package addon
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Download binaries for every platform
+        uses: actions/download-artifact@v8
+        with:
+          pattern: starter-template-bin-*
+          path: project/addons/StarterTemplate/bin
+          merge-multiple: true
+
+      - name: Zip addon
+        run: |
+          cp LICENSE project/addons/StarterTemplate/LICENSE
+          cd project
+          zip -r "${{ github.workspace }}/StarterTemplate.zip" addons/StarterTemplate
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: StarterTemplate.zip
+          generate_release_notes: true

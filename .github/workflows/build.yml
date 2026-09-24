@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            os: ubuntu-latest
+          - platform: windows
+            os: windows-latest
+          - platform: macos
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install SCons
+        run: pip install scons
+
+      # Pinned godot-cpp commit, so bumping the submodule invalidates the
+      # cache key too.
+      - name: Get submodule revisions
+        id: submodules
+        shell: bash
+        run: echo "hash=$(git submodule status | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache SCons build
+        uses: actions/cache@v6
+        with:
+          path: .scons_cache
+          key: scons-ci-${{ matrix.platform }}-${{ hashFiles('src/**', 'SConstruct') }}-${{ steps.submodules.outputs.hash }}
+          restore-keys: |
+            scons-ci-${{ matrix.platform }}-
+
+      # Builds the extension and runs the standalone (no godot-cpp) test in
+      # tests/ in one pass. template_debug only: this is a compile/test
+      # sanity check, not a release build (see release.yml for that).
+      - name: Build and test
+        env:
+          SCONS_CACHE: ${{ github.workspace }}/.scons_cache
+        run: |
+          scons platform=${{ matrix.platform }} target=template_debug
+          scons tests

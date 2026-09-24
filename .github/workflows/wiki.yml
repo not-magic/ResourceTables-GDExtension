@@ -1,0 +1,54 @@
+name: Update Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - doc_classes/**
+      - tools/generate_docs.py
+  workflow_dispatch:
+
+concurrency:
+  group: update-wiki
+  cancel-in-progress: true
+
+jobs:
+  update-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Generate docs from doc_classes/*.xml
+        run: python3 tools/generate_docs.py --src doc_classes --out docs
+
+      # docs/ is gitignored (doc_classes/*.xml is the source of truth, docs/
+      # is a build artifact of this job), so it's never committed to main and
+      # a wiki-sync action that copies from the checked-out repo tree can't
+      # see it. Instead, clone the wiki repo directly and mirror the
+      # artifact into it here.
+      - name: Push generated docs to wiki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki
+
+          rsync -a --delete --exclude .git docs/ wiki/
+
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --staged --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+
+          git commit -m "docs: update wiki from doc_classes/*.xml"
+          git push

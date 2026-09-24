@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GDExample" inherits="Sprite2D" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		Brief description goes here
+	</brief_description>
+	<description>
+		Long description goes here
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="amplitude" type="float" setter="set_amplitude" getter="get_amplitude" default="10.0">
+			Example Amplitude Docs
+		</member>
+		<member name="speed" type="float" setter="set_speed" getter="get_speed" default="1.0">
+			Example Speed Docs
+		</member>
+	</members>
+	<signals>
+		<signal name="position_changed">
+			<param index="0" name="node" type="Object" />
+			<param index="1" name="new_pos" type="Vector2" />
+			<description>
+				Example signal
+			</description>
+		</signal>
+	</signals>
+</class>
