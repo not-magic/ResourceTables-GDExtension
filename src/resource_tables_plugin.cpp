@@ -1,129 +1,24 @@
 #include "resource_tables_plugin.h"
 
-#include <godot_cpp/classes/class_db_singleton.hpp>
-#include <godot_cpp/classes/dir_access.hpp>
+#include "resource_table_utils.h"
+
 #include <godot_cpp/classes/editor_file_system.hpp>
 #include <godot_cpp/classes/editor_inspector.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/menu_bar.hpp>
+#include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
 #include <godot_cpp/classes/tree_item.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
-#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
 
 using namespace godot;
 
 namespace {
-
-// Resolves p_base's chain -- possibly through other project global classes
-// -- down to a real engine/GDExtension class, then checks whether that
-// inherits Resource.
-bool _base_chain_inherits_resource(StringName p_base, const HashMap<StringName, StringName> &p_global_class_bases) {
-	for (int i = 0; i < 32 && p_base != StringName(); i++) {
-		if (p_base == StringName("Resource")) {
-			return true;
-		}
-		HashMap<StringName, StringName>::ConstIterator it = p_global_class_bases.find(p_base);
-		if (it == p_global_class_bases.end()) {
-			return ClassDB::is_parent_class(p_base, "Resource");
-		}
-		p_base = it->value;
-	}
-	return false;
-}
-
-// Names of the project's own global classes (i.e. scripts with a
-// `class_name`) that inherit Resource, sorted alphabetically. Engine/
-// GDExtension-builtin Resource types (Texture2D, AudioEffect, ...) are
-// deliberately excluded -- only resource types actually created in this
-// project belong in the dropdown.
-PackedStringArray _find_resource_class_names() {
-	TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-
-	HashMap<StringName, StringName> global_class_bases;
-	for (int i = 0; i < global_classes.size(); i++) {
-		Dictionary entry = global_classes[i];
-		global_class_bases[StringName(entry["class"])] = StringName(entry["base"]);
-	}
-
-	HashSet<String> names;
-	for (int i = 0; i < global_classes.size(); i++) {
-		Dictionary entry = global_classes[i];
-		StringName class_name = entry["class"];
-		if (_base_chain_inherits_resource(entry["base"], global_class_bases)) {
-			names.insert(class_name);
-		}
-	}
-
-	PackedStringArray sorted_names;
-	for (const String &name : names) {
-		sorted_names.push_back(name);
-	}
-	sorted_names.sort();
-	return sorted_names;
-}
-
-// The script backing a project global class, or null if p_class_name isn't
-// one (e.g. it's a builtin/engine class).
-Ref<Script> _find_script_for_class(const StringName &p_class_name) {
-	TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-	for (int i = 0; i < global_classes.size(); i++) {
-		Dictionary entry = global_classes[i];
-		if (StringName(entry["class"]) == p_class_name) {
-			return ResourceLoader::get_singleton()->load(entry["path"]);
-		}
-	}
-	return Ref<Script>();
-}
-
-// Recursively finds every .tres/.res file under p_dir whose attached script
-// is exactly p_class_name (not a subclass -- this addon shows one flat
-// table per concrete resource type).
-void _collect_resources_of_class(const String &p_dir, const StringName &p_class_name, Array &r_results) {
-	Ref<DirAccess> dir = DirAccess::open(p_dir);
-	if (dir.is_null()) {
-		return;
-	}
-
-	dir->list_dir_begin();
-	for (String entry = dir->get_next(); !entry.is_empty(); entry = dir->get_next()) {
-		String full_path = p_dir.path_join(entry);
-		if (dir->current_is_dir()) {
-			if (!entry.begins_with(".")) {
-				_collect_resources_of_class(full_path, p_class_name, r_results);
-			}
-			continue;
-		}
-
-		String ext = entry.get_extension().to_lower();
-		if (ext != "tres" && ext != "res") {
-			continue;
-		}
-
-		Ref<Resource> resource = ResourceLoader::get_singleton()->load(full_path);
-		if (resource.is_null()) {
-			continue;
-		}
-
-		Ref<Script> script = resource->get_script();
-		if (script.is_valid() && script->get_global_name() == p_class_name) {
-			r_results.push_back(resource);
-		}
-	}
-	dir->list_dir_end();
-}
-
-// Whether a script property (as returned by Script::get_script_property_list)
-// is one the user actually exported, rather than a plain internal `var`.
-bool _is_editable_property(const Dictionary &p_property_info) {
-	int64_t usage = p_property_info["usage"];
-	return (usage & PROPERTY_USAGE_EDITOR) != 0;
-}
 
 struct RangeConfig {
 	double min;
@@ -174,6 +69,43 @@ RangeConfig _get_range_config(const Dictionary &p_property_info) {
 	return config;
 }
 
+enum FileMenuId {
+	FILE_MENU_NEW_TABLE,
+	FILE_MENU_EXPORT_CSV,
+	FILE_MENU_IMPORT_CSV,
+};
+
+// Converts an arbitrary filename (its extension-less basename) into a
+// GDScript-identifier-safe CamelCase class name, e.g. "enemy_table" ->
+// "EnemyTable", "AAA-11" -> "AAA11". Only the character right after a
+// non-alphanumeric run is uppercased -- the rest of each run is left as-is,
+// so an already-CamelCase basename like "EnemyTable" passes through
+// unchanged.
+String _filename_to_camel_case(const String &p_basename) {
+	String result;
+	bool capitalize_next = true;
+	for (int i = 0; i < p_basename.length(); i++) {
+		char32_t c = p_basename[i];
+		bool is_alnum = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+		if (!is_alnum) {
+			capitalize_next = true;
+			continue;
+		}
+		if (capitalize_next) {
+			if (c >= 'a' && c <= 'z') {
+				c -= ('a' - 'A');
+			}
+			capitalize_next = false;
+		}
+		result += c;
+	}
+
+	if (!result.is_empty() && result[0] >= '0' && result[0] <= '9') {
+		result = "_" + result; // Identifiers can't start with a digit.
+	}
+	return result;
+}
+
 } // namespace
 
 void ResourceTablesPlugin::_bind_methods() {
@@ -188,12 +120,19 @@ void ResourceTablesPlugin::_enter_tree() {
 	HBoxContainer *top_row = memnew(HBoxContainer);
 	main_panel->add_child(top_row);
 
+	MenuBar *menu_bar = memnew(MenuBar);
+	PopupMenu *file_menu = memnew(PopupMenu);
+	file_menu->set_name("File");
+	file_menu->add_item("New ResourceTable...", FILE_MENU_NEW_TABLE);
+	file_menu->add_separator();
+	file_menu->add_item("Export to CSV...", FILE_MENU_EXPORT_CSV);
+	file_menu->add_item("Import from CSV...", FILE_MENU_IMPORT_CSV);
+	file_menu->connect("id_pressed", callable_mp(this, &ResourceTablesPlugin::_on_file_menu_id_pressed));
+	menu_bar->add_child(file_menu);
+	top_row->add_child(menu_bar);
+
 	class_dropdown = memnew(OptionButton);
 	class_dropdown->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	PackedStringArray class_names = _find_resource_class_names();
-	for (const String &class_name : class_names) {
-		class_dropdown->add_item(class_name);
-	}
 	class_dropdown->connect("item_selected", callable_mp(this, &ResourceTablesPlugin::_on_class_selected));
 	top_row->add_child(class_dropdown);
 
@@ -229,7 +168,28 @@ void ResourceTablesPlugin::_enter_tree() {
 
 	main_panel->add_child(table_tree);
 
-	add_control_to_bottom_panel(main_panel, "Resources");
+	csv_dialog = memnew(EditorFileDialog);
+	csv_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
+	csv_dialog->add_filter("*.csv", "CSV Files");
+	csv_dialog->connect("file_selected", callable_mp(this, &ResourceTablesPlugin::_on_csv_file_selected));
+	main_panel->add_child(csv_dialog);
+
+	import_confirm_dialog = memnew(ConfirmationDialog);
+	import_confirm_dialog->set_title("Import from CSV");
+	import_confirm_dialog->connect("confirmed", callable_mp(this, &ResourceTablesPlugin::_on_import_confirmed));
+	main_panel->add_child(import_confirm_dialog);
+
+	// Step 2 of "New ResourceTable...": saving the new .gd file, once a
+	// Resource type has been picked via EditorInterface::popup_create_dialog
+	// (step 1 -- see _on_file_menu_id_pressed).
+	new_table_file_dialog = memnew(EditorFileDialog);
+	new_table_file_dialog->set_access(EditorFileDialog::ACCESS_RESOURCES);
+	new_table_file_dialog->set_file_mode(EditorFileDialog::FILE_MODE_SAVE_FILE);
+	new_table_file_dialog->add_filter("*.gd", "GDScript Files");
+	new_table_file_dialog->connect("file_selected", callable_mp(this, &ResourceTablesPlugin::_on_new_table_path_selected));
+	main_panel->add_child(new_table_file_dialog);
+
+	add_control_to_bottom_panel(main_panel, "ResourceTables");
 
 	// Catches resources being added, removed, or externally modified on disk.
 	EditorInterface::get_singleton()->get_resource_filesystem()->connect("filesystem_changed", callable_mp(this, &ResourceTablesPlugin::_on_filesystem_changed));
@@ -237,9 +197,7 @@ void ResourceTablesPlugin::_enter_tree() {
 	// whatever object happens to be selected there.
 	EditorInterface::get_singleton()->get_inspector()->connect("property_edited", callable_mp(this, &ResourceTablesPlugin::_on_inspector_property_edited));
 
-	if (!class_names.is_empty()) {
-		_rebuild_table(class_names[0]);
-	}
+	_refresh_class_dropdown();
 }
 
 void ResourceTablesPlugin::_exit_tree() {
@@ -261,6 +219,39 @@ void ResourceTablesPlugin::_exit_tree() {
 	}
 }
 
+void ResourceTablesPlugin::_refresh_class_dropdown() {
+	StringName previous_selection = current_class_name;
+
+	class_dropdown->clear();
+	PackedStringArray class_names = ResourceTableUtils::find_table_class_names();
+	for (const String &class_name : class_names) {
+		class_dropdown->add_item(class_name);
+	}
+
+	int index_to_select = class_names.find(previous_selection);
+	if (index_to_select < 0 && !class_names.is_empty()) {
+		index_to_select = 0;
+	}
+
+	if (index_to_select < 0) {
+		// No ResourceTable subclasses left in the project.
+		current_class_name = StringName();
+		current_resource_class_name = StringName();
+		current_properties = Array();
+		table_tree->clear();
+		table_tree->set_columns(1);
+		return;
+	}
+
+	class_dropdown->select(index_to_select);
+	StringName selected_class_name = class_names[index_to_select];
+	if (selected_class_name != previous_selection) {
+		sort_column = 0; // Reset to the default sort (Name, ascending) for the newly selected class.
+		sort_ascending = true;
+	}
+	_rebuild_table(selected_class_name);
+}
+
 void ResourceTablesPlugin::_on_class_selected(int p_index) {
 	sort_column = 0; // Reset to the default sort (Name, ascending) for the newly selected class.
 	sort_ascending = true;
@@ -271,20 +262,16 @@ void ResourceTablesPlugin::_rebuild_table(const StringName &p_class_name) {
 	current_class_name = p_class_name;
 	table_tree->clear();
 
-	Ref<Script> script = _find_script_for_class(p_class_name);
-	if (script.is_null()) {
+	Dictionary table_result = ResourceTableUtils::run_table(p_class_name);
+	StringName resource_class_name = table_result["resource_class_name"];
+	if (resource_class_name == StringName()) {
 		table_tree->set_columns(1);
 		current_properties = Array();
+		current_resource_class_name = StringName();
 		return;
 	}
-
-	Array all_properties = script->get_script_property_list();
-	current_properties.clear();
-	for (int i = 0; i < all_properties.size(); i++) {
-		if (_is_editable_property(all_properties[i])) {
-			current_properties.push_back(all_properties[i]);
-		}
-	}
+	current_resource_class_name = resource_class_name;
+	current_properties = table_result["properties"];
 
 	table_tree->set_columns(1 + current_properties.size());
 	// Every column can be resized by dragging its header border; the name
@@ -305,8 +292,8 @@ void ResourceTablesPlugin::_rebuild_table(const StringName &p_class_name) {
 		table_tree->set_column_expand(1 + i, true);
 	}
 
-	Array resources;
-	_collect_resources_of_class("res://", p_class_name, resources);
+	Array resources = table_result["resources"];
+
 	if (sort_column >= 0 && sort_column <= current_properties.size()) {
 		resources.sort_custom(callable_mp(this, &ResourceTablesPlugin::_compare_by_sort_column));
 	}
@@ -314,6 +301,9 @@ void ResourceTablesPlugin::_rebuild_table(const StringName &p_class_name) {
 	TreeItem *root = table_tree->create_item();
 	for (int i = 0; i < resources.size(); i++) {
 		Ref<Resource> resource = resources[i];
+		if (resource.is_null()) {
+			continue;
+		}
 
 		TreeItem *row = table_tree->create_item(root);
 		row->set_text(0, resource->get_path().get_file().get_basename());
@@ -426,8 +416,12 @@ void ResourceTablesPlugin::_on_inspector_property_edited(String p_property) {
 		return;
 	}
 
+	// A script's global class name if the resource has one, or its own
+	// native engine class otherwise -- matches how ResourceTableUtils
+	// resolves and matches resource types (see _resource_type_name).
 	Ref<Script> script = resource->get_script();
-	if (script.is_null() || script->get_global_name() != current_class_name) {
+	StringName resource_type_name = script.is_valid() ? script->get_global_name() : StringName(resource->get_class());
+	if (resource_type_name != current_resource_class_name) {
 		return; // Not an instance of the type currently displayed.
 	}
 
@@ -436,13 +430,13 @@ void ResourceTablesPlugin::_on_inspector_property_edited(String p_property) {
 }
 
 void ResourceTablesPlugin::_on_filesystem_changed() {
-	// A file being added, removed, or reloaded after an external edit means
-	// the currently displayed table (the only one visible at a time) may be
-	// stale -- e.g. a new resource of this type could now exist on disk.
+	// A file being added, removed, or reloaded after an external edit could
+	// mean: a new/removed ResourceTable subclass (the dropdown itself is
+	// stale), or a new/removed/changed resource of the currently displayed
+	// type (the table rows are stale). _refresh_class_dropdown re-scans the
+	// dropdown and then rebuilds the table for whatever ends up selected.
 	// Deferred for the same reentrancy reason as _on_column_title_clicked.
-	if (current_class_name != StringName()) {
-		callable_mp(this, &ResourceTablesPlugin::_rebuild_table).call_deferred(current_class_name);
-	}
+	callable_mp(this, &ResourceTablesPlugin::_refresh_class_dropdown).call_deferred();
 }
 
 void ResourceTablesPlugin::_on_column_title_clicked(int p_column, int p_mouse_button_index) {
@@ -467,6 +461,9 @@ void ResourceTablesPlugin::_on_column_title_clicked(int p_column, int p_mouse_bu
 bool ResourceTablesPlugin::_compare_by_sort_column(Variant p_a, Variant p_b) {
 	Ref<Resource> a = p_a;
 	Ref<Resource> b = p_b;
+	if (a.is_null() || b.is_null()) {
+		return false;
+	}
 
 	Variant value_a;
 	Variant value_b;
@@ -493,4 +490,105 @@ bool ResourceTablesPlugin::_compare_by_sort_column(Variant p_a, Variant p_b) {
 		return String(value_a).naturalnocasecmp_to(value_b) < 0;
 	}
 	return value_a < value_b;
+}
+
+void ResourceTablesPlugin::_on_file_menu_id_pressed(int p_id) {
+	switch (p_id) {
+		case FILE_MENU_NEW_TABLE: {
+			new_table_resource_class_name = StringName();
+			EditorInterface::get_singleton()->popup_create_dialog(
+					callable_mp(this, &ResourceTablesPlugin::_on_new_table_resource_class_selected),
+					"Resource", "", "Select Resource Type");
+			break;
+		}
+		case FILE_MENU_EXPORT_CSV: {
+			csv_dialog_is_export = true;
+			csv_dialog->set_file_mode(EditorFileDialog::FILE_MODE_SAVE_FILE);
+			csv_dialog->set_title("Export to CSV");
+			csv_dialog->set_current_file(String(current_resource_class_name) + ".csv");
+			csv_dialog->popup_centered_ratio(0.5);
+			break;
+		}
+		case FILE_MENU_IMPORT_CSV: {
+			csv_dialog_is_export = false;
+			csv_dialog->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_FILE);
+			csv_dialog->set_title("Import from CSV");
+			csv_dialog->popup_centered_ratio(0.5);
+			break;
+		}
+	}
+}
+
+void ResourceTablesPlugin::_on_csv_file_selected(String p_path) {
+	if (csv_dialog_is_export) {
+		ResourceTableUtils::export_csv(current_class_name, p_path);
+		return;
+	}
+
+	ResourceTableUtils::ImportPreview preview = ResourceTableUtils::preview_import_csv(current_class_name, p_path);
+	if (preview.error != OK) {
+		return;
+	}
+
+	int adds = preview.adds;
+	int updates = preview.updates;
+	int deletes = preview.deletes;
+	if (adds == 0 && updates == 0 && deletes == 0) {
+		return; // Nothing would change -- no need to ask.
+	}
+
+	pending_import_csv_path = p_path;
+	import_confirm_dialog->set_text(
+			"Importing this CSV will:\n"
+			"  " + String::num_int64(adds) + " resource(s) added\n" +
+			"  " + String::num_int64(updates) + " resource(s) updated\n" +
+			"  " + String::num_int64(deletes) + " resource(s) deleted\n\n"
+			"This cannot be undone. Continue?");
+	import_confirm_dialog->popup_centered();
+}
+
+void ResourceTablesPlugin::_on_import_confirmed() {
+	ResourceTableUtils::import_csv(current_class_name, pending_import_csv_path);
+	_rebuild_table(current_class_name);
+}
+
+void ResourceTablesPlugin::_on_new_table_resource_class_selected(StringName p_class_name) {
+	if (p_class_name == StringName()) {
+		return; // The class browser was cancelled.
+	}
+	new_table_resource_class_name = p_class_name;
+
+	// Step 2: where to save the new ResourceTable script.
+	new_table_file_dialog->set_current_file(String(p_class_name) + "Table.gd");
+	new_table_file_dialog->popup_centered_ratio(0.5);
+}
+
+void ResourceTablesPlugin::_on_new_table_path_selected(String p_path) {
+	if (new_table_resource_class_name == StringName()) {
+		return;
+	}
+
+	String class_name = _filename_to_camel_case(p_path.get_file().get_basename());
+	if (class_name.is_empty()) {
+		return;
+	}
+
+	String content = "@tool\n";
+	content += "class_name " + class_name + "\n";
+	content += "extends ResourceTable\n\n";
+	content += "@export var ITEMS: Array[" + String(new_table_resource_class_name) + "]\n";
+
+	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::WRITE);
+	if (file.is_null()) {
+		return;
+	}
+	file->store_string(content);
+	file->close();
+
+	EditorInterface::get_singleton()->get_resource_filesystem()->scan();
+
+	Ref<Script> new_script = ResourceLoader::get_singleton()->load(p_path, "", ResourceLoader::CACHE_MODE_IGNORE);
+	if (new_script.is_valid()) {
+		EditorInterface::get_singleton()->edit_script(new_script);
+	}
 }

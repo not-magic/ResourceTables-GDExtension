@@ -1,6 +1,24 @@
 [gd_scene format=3 uid="uid://c0j58gqjq8u8h"]
 
+[ext_resource type="Script" uid="uid://b0fyg1jqjxbsh" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Shader" uid="uid://dw4wgpearai5w" path="res://test_shader.gdshader" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://cf4tlu2d3xhsb" path="res://ResourceTypes/AAA.gd" id="2_vivmo"]
+[ext_resource type="Resource" uid="uid://dkaipab8kgwwl" path="res://AAA_0.tres" id="3_2cqfq"]
+[ext_resource type="Resource" uid="uid://but35uo6serhm" path="res://AAA_1.tres" id="4_yaehf"]
+[ext_resource type="Resource" uid="uid://jg1ecbd05mo5" path="res://AAA_2.tres" id="5_074og"]
+[ext_resource type="Resource" uid="uid://cmbjo7v08w51o" path="res://AAA_3.tres" id="6_cegan"]
+[ext_resource type="Resource" uid="uid://db56miuhva5hb" path="res://AAA_4.tres" id="7_82xsv"]
+[ext_resource type="Resource" uid="uid://dwg77tmumvg3i" path="res://AAA_5.tres" id="8_getpj"]
+[ext_resource type="Resource" uid="uid://cuygiwj1gs3xl" path="res://AAA_6.tres" id="9_ryguw"]
+[ext_resource type="Resource" uid="uid://dfofnqqlxgwef" path="res://AAA_7.tres" id="10_d13ii"]
+[ext_resource type="Resource" uid="uid://df2jg2w0x7ih4" path="res://AAA_8.tres" id="11_1u8w0"]
+[ext_resource type="Resource" uid="uid://kdqj8bjqximk" path="res://AAA_9.tres" id="12_0odxb"]
+[ext_resource type="Resource" uid="uid://cy3s7o84b5y15" path="res://AAA_11.tres" id="13_lswn8"]
+[ext_resource type="Script" uid="uid://obcxtrdjdq10" path="res://ResourceTables/AAATable.gd" id="14_a6jrf"]
+
+[sub_resource type="ResourceTable" id="ResourceTable_xuqvo"]
+script = ExtResource("14_a6jrf")
+ITEMS = Array[ExtResource("2_vivmo")]([ExtResource("3_2cqfq"), ExtResource("4_yaehf"), ExtResource("5_074og"), ExtResource("6_cegan"), ExtResource("7_82xsv"), ExtResource("8_getpj"), ExtResource("9_ryguw"), ExtResource("10_d13ii"), ExtResource("11_1u8w0"), ExtResource("12_0odxb"), ExtResource("13_lswn8")])
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s5fb5"]
 render_priority = 0
@@ -12,6 +30,8 @@ material = SubResource("ShaderMaterial_s5fb5")
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_m0nv1"]
 
 [node name="Main" type="Node2D" unique_id=547416149]
+script = ExtResource("1_0xm2m")
+aaa_table = SubResource("ResourceTable_xuqvo")
 
 [node name="MeshInstance2D" type="MeshInstance2D" parent="." unique_id=627594733]
 position = Vector2(0.0069185286, 0.8715561)

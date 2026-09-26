@@ -1,0 +1,11 @@
+[gd_resource type="ResourceTable" script_class="BBBTable" format=3 uid="uid://ddafd4oqnpn0b"]
+
+[ext_resource type="Script" uid="uid://cmnwvftywh6iu" path="res://ResourceTypes/BBB.gd" id="1_1g8kg"]
+[ext_resource type="Resource" uid="uid://cddik6kjam0bi" path="res://BBB_0.tres" id="2_l5qnp"]
+[ext_resource type="Resource" uid="uid://d7kjnvyebcmy" path="res://BBB_1.tres" id="3_ebdhl"]
+[ext_resource type="Resource" uid="uid://iivcsf0ame2m" path="res://BBB_2.tres" id="4_7xvgi"]
+[ext_resource type="Script" uid="uid://cf0ynyusqcclc" path="res://ResourceTables/BBBTable.gd" id="5_ff8o7"]
+
+[resource]
+script = ExtResource("5_ff8o7")
+ITEMS = Array[ExtResource("1_1g8kg")]([ExtResource("2_l5qnp"), ExtResource("3_ebdhl"), ExtResource("4_7xvgi")])

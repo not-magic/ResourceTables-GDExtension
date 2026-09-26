@@ -1,0 +1,8 @@
+[gd_resource type="ResourceTable" script_class="ColorPalettesTable" format=3 uid="uid://cosdxr8fmja75"]
+
+[ext_resource type="ColorPalette" uid="uid://b43dvo54k05dl" path="res://new_color_palette.tres" id="1_l8pr5"]
+[ext_resource type="Script" uid="uid://c2mse4iobjgq1" path="res://ResourceTables/ColorPalettesTable.gd" id="2_oolwm"]
+
+[resource]
+script = ExtResource("2_oolwm")
+ITEMS = Array[ColorPalette]([ExtResource("1_l8pr5")])

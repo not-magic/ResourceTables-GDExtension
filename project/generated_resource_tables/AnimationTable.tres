@@ -1,0 +1,8 @@
+[gd_resource type="ResourceTable" script_class="AnimationTable" format=3 uid="uid://dsgo0k4xyy1hq"]
+
+[ext_resource type="Animation" uid="uid://bii6iac3asavt" path="res://new_animation.tres" id="1_6hfyf"]
+[ext_resource type="Script" uid="uid://cmsfffob8v0xm" path="res://ResourceTables/AnimationTable.gd" id="2_ckopm"]
+
+[resource]
+script = ExtResource("2_ckopm")
+ITEMS = Array[Animation]([ExtResource("1_6hfyf")])

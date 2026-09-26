@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AAA" format=3 uid="uid://cy3s7o84b5y15"]
+
+[ext_resource type="Script" uid="uid://cf4tlu2d3xhsb" path="res://ResourceTypes/AAA.gd" id="1_xfppg"]
+
+[resource]
+script = ExtResource("1_xfppg")
+int_val = 11
+str_val = "string 1"
+flt_val = 1.0

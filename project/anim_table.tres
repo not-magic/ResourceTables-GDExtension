@@ -1,0 +1,7 @@
+[gd_resource type="Resource" format=3 uid="uid://dri1wmas5x3w3"]
+
+[sub_resource type="GDScript" id="GDScript_h2yge"]
+
+[resource]
+script = SubResource("GDScript_h2yge")
+metadata/_custom_type_script = "uid://cmsfffob8v0xm"

@@ -5,9 +5,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 A Godot 4 GDExtension (native C++ addon, built against `godot-cpp`), named `ResourceTables`.
-It started from the generic "StarterTemplate" example addon, so the placeholder class
-(`GDExample` in `src/gdexample.{h,cpp}`, documented in `doc_classes/GDExample.xml`) is still
-in place and expected to be replaced/renamed as the addon's real API is built out.
+It adds a "ResourceTables" bottom panel to the editor (`ResourceTablesPlugin`) for browsing
+and editing `Resource` instances as spreadsheet-like tables, driven by `ResourceTable`
+subclasses -- `ResourceTable` itself is a thin native marker class (`src/resource_table.h`,
+just `Resource` with no members) that a project script extends, declaring an
+`@export var ITEMS: Array[Type]`; `Type` (a project global class or a native/engine type) is
+reflected off of that property's typed-array hint, not passed explicitly anywhere. The
+discovery/reflection logic those tables share with `addons/ResourceTables/export_resource_tables.gd`
+lives in `ResourceTableUtils` (`src/resource_table_utils.{h,cpp}`), a static-method-only class
+exposed to GDScript for exactly that reuse; its `regenerate_table()` scans `res://` for every
+resource of `Type`, filters them through the table's optional `_is_valid()`, and saves the
+result as `generated_resource_tables/<TableClassName>.tres` -- an actual saved instance of the
+table class with `ITEMS` populated, which is what `run_table()` (and hence the editor panel and
+CSV export) reads. `export_resource_tables.gd` just calls `regenerate_table()` for every table
+class found by `find_table_class_names()`.
 
 ## Setup
 

@@ -1,6 +1,7 @@
 #include "register_types.h"
 
-#include "gdexample.h"
+#include "resource_table.h"
+#include "resource_table_utils.h"
 #include "resource_tables_plugin.h"
 
 #include <gdextension_interface.h>
@@ -18,7 +19,8 @@ using namespace godot;
 // this extension is actually running inside an editor process.
 void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		GDREGISTER_CLASS(GDExample);
+		GDREGISTER_CLASS(ResourceTable);
+		GDREGISTER_CLASS(ResourceTableUtils);
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {

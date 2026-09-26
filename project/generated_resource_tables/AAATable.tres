@@ -1,0 +1,19 @@
+[gd_resource type="ResourceTable" script_class="AAATable" format=3 uid="uid://cbj43m3rot1nd"]
+
+[ext_resource type="Script" uid="uid://cf4tlu2d3xhsb" path="res://ResourceTypes/AAA.gd" id="1_ssfhq"]
+[ext_resource type="Resource" uid="uid://dkaipab8kgwwl" path="res://AAA_0.tres" id="2_rxje8"]
+[ext_resource type="Resource" uid="uid://but35uo6serhm" path="res://AAA_1.tres" id="3_pn2jn"]
+[ext_resource type="Resource" uid="uid://jg1ecbd05mo5" path="res://AAA_2.tres" id="4_dlpyv"]
+[ext_resource type="Resource" uid="uid://cmbjo7v08w51o" path="res://AAA_3.tres" id="5_rcwbx"]
+[ext_resource type="Resource" uid="uid://db56miuhva5hb" path="res://AAA_4.tres" id="6_usnhc"]
+[ext_resource type="Resource" uid="uid://dwg77tmumvg3i" path="res://AAA_5.tres" id="7_hmv8n"]
+[ext_resource type="Resource" uid="uid://cuygiwj1gs3xl" path="res://AAA_6.tres" id="8_ktk5s"]
+[ext_resource type="Resource" uid="uid://dfofnqqlxgwef" path="res://AAA_7.tres" id="9_occ1j"]
+[ext_resource type="Resource" uid="uid://df2jg2w0x7ih4" path="res://AAA_8.tres" id="10_hbi6u"]
+[ext_resource type="Resource" uid="uid://kdqj8bjqximk" path="res://AAA_9.tres" id="11_j6jae"]
+[ext_resource type="Resource" uid="uid://cy3s7o84b5y15" path="res://AAA_11.tres" id="12_xwxuo"]
+[ext_resource type="Script" uid="uid://obcxtrdjdq10" path="res://ResourceTables/AAATable.gd" id="13_wk7eb"]
+
+[resource]
+script = ExtResource("13_wk7eb")
+ITEMS = Array[ExtResource("1_ssfhq")]([ExtResource("2_rxje8"), ExtResource("3_pn2jn"), ExtResource("4_dlpyv"), ExtResource("5_rcwbx"), ExtResource("6_usnhc"), ExtResource("7_hmv8n"), ExtResource("8_ktk5s"), ExtResource("9_occ1j"), ExtResource("10_hbi6u"), ExtResource("11_j6jae"), ExtResource("12_xwxuo")])
