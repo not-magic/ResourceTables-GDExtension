@@ -4,20 +4,13 @@
 
 namespace godot {
 
-// Base class for a table shown in the ResourceTables bottom panel. A
-// subclass is itself the persisted table data: declare it with its own
-// `class_name` and an `@export var ITEMS: Array[YourResourceType]` --
-// ResourceTableUtils reflects YourResourceType off of ITEMS' typed-array
-// hint, and (re)populates ITEMS by scanning res:// for resources of that
-// type (see ResourceTableUtils::regenerate_table, invoked in bulk by
-// addons/ResourceTables/export_resource_tables.gd). An optional
-// `static _is_valid(item: YourResourceType) -> bool` filters which of those
-// get included.
-//
-// Deliberately just a marker: find_table_class_names() identifies table
-// subclasses by inheritance from this class, and it carries no state or
-// logic of its own -- everything else lives on the subclass (ITEMS,
-// _is_valid) or in ResourceTableUtils.
+// Marker base for a ResourceTableGenerator's own output (e.g.
+// GenericResourceTable.gd, project/addons/ResourceTables/). Deliberately
+// just a marker, carrying no members or logic of its own -- its only job is
+// to let ResourceTableUtils recognize and exclude its own instances from the
+// "Resources" panel's main type dropdown (see
+// ResourceTableUtils::find_resource_type_names_with_instances), the same way
+// a generator script itself is excluded.
 class ResourceTable : public Resource {
 	GDCLASS(ResourceTable, Resource)
 

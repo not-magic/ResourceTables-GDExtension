@@ -1,22 +1,29 @@
 @tool
-## Run from the Script Editor (File > Run, or Ctrl+Shift+X) to (re)generate
-## res://generated_resource_tables/<TableClassName>.tres for every
-## ResourceTable subclass in the project -- each one an instance of that
-## class with its `ITEMS` populated from every resource of ITEMS' declared
-## element type currently in the project.
+## Run from the Script Editor (File > Run, or Ctrl+Shift+X) to call
+## _generate_outputs() on one instance of every ResourceTableGenerator
+## subclass in the project -- each instance decides itself what to write and
+## where (see resource_table_generator.gd's own doc comment).
 ##
-## Discovery/filtering is done by ResourceTableUtils (C++), the single shared
-## implementation of "what resources does this table show" also used by the
-## ResourceTables editor panel itself.
+## Discovery is done by ResourceTableUtils (C++), the single shared
+## implementation of "what ResourceTableGenerator subclasses exist" also used
+## by the ResourceTables editor panel itself.
 extends EditorScript
 
-
 func _run() -> void:
-	for table_class_name in ResourceTableUtils.find_table_class_names():
-		var resource_class_name := ResourceTableUtils.regenerate_table(table_class_name)
-		if resource_class_name.is_empty():
-			push_warning("%s has no `ITEMS: Array[Type]` export, or Type can't be resolved -- skipped." % table_class_name)
+
+	for script in ResourceTableUtils.find_generator_scripts():
+		if not script.can_instantiate():
+			push_warning("%s is not @tool -- can't be instantiated in the editor, skipped." % script.resource_path)
 			continue
-		print("Regenerated ", table_class_name, " (", resource_class_name, ")")
+		var generator = script.new()
+		generator._generate_outputs()
 
 	EditorInterface.get_resource_filesystem().scan()
+
+	# _generate_outputs() edits an existing resource in place (via
+	# ResourceTableUtils.find_or_create) -- if the Inspector currently has
+	# that same resource open, it doesn't notice the change on its own, so
+	# nudge it to redraw.
+	var edited_object := EditorInterface.get_inspector().get_edited_object()
+	if edited_object:
+		edited_object.notify_property_list_changed()

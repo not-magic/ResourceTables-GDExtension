@@ -14,8 +14,59 @@ env = SConscript("godot-cpp/SConstruct")
 # Configures the 'src' directory as a source for header files.
 env.Append(CPPPATH=["src/"])
 
-# Collects all .cpp files in the 'src' folder as compile targets.
-sources = Glob("src/*.cpp")
+# --- csv-parser submodule (CSV import/export backend, used by
+# src/resource_table_utils.cpp) ---
+# csv-parser has no top-level CMake library target we can just link
+# against (see csv-parser/include/internal/CMakeLists.txt) -- its .cpp
+# files are the actual list of sources its own `csv` CMake target compiles,
+# mirrored here. It also throws on things like a malformed row or a file it
+# can't open, so both its own sources and resource_table_utils.cpp (the one
+# file that calls into it) need exceptions enabled, overriding godot-cpp's
+# project-wide -fno-exceptions/_HAS_EXCEPTIONS=0
+# (see godot-cpp/tools/common_compiler_flags.py) -- every other source file
+# keeps building exception-free.
+CSV_PARSER_DIR = "csv-parser"
+csv_env = env.Clone()
+csv_env.Append(CPPPATH=[CSV_PARSER_DIR + "/include"])
+csv_env.Append(CPPDEFINES=[
+    # Single-threaded: simplest/most portable across our target platforms,
+    # and plenty fast for the small property tables this addon deals with.
+    ("CSV_ENABLE_THREADS", 0),
+    # Safe default for csv-parser's own scalar-parsing fast path; assumes
+    # the standard library's floating-point std::from_chars is NOT
+    # available rather than probing for it (this addon has no CMake-style
+    # configure step), which just means it always takes csv-parser's
+    # portable fallback instead of a newer-stdlib-only shortcut.
+    ("CLASSIFY_SCALAR_USE_STD_FLOAT_FROM_CHARS", 0),
+])
+if csv_env.get("is_msvc", False):
+    csv_env["CPPDEFINES"] = [d for d in csv_env["CPPDEFINES"] if not (isinstance(d, tuple) and d[0] == "_HAS_EXCEPTIONS")]
+    csv_env.Append(CXXFLAGS=["/EHsc"])
+else:
+    csv_env["CXXFLAGS"] = [f for f in csv_env["CXXFLAGS"] if f != "-fno-exceptions"]
+    csv_env.Append(CXXFLAGS=["-fexceptions"])
+
+csv_library_sources = [
+    CSV_PARSER_DIR + "/include/internal/col_names.cpp",
+    CSV_PARSER_DIR + "/include/internal/csv_format.cpp",
+    CSV_PARSER_DIR + "/include/internal/parser/driver.cpp",
+    CSV_PARSER_DIR + "/include/internal/parser/guessing.cpp",
+    CSV_PARSER_DIR + "/include/internal/parser/mmap.cpp",
+    CSV_PARSER_DIR + "/include/internal/csv_reader.cpp",
+    CSV_PARSER_DIR + "/include/internal/csv_reader_iterator.cpp",
+    CSV_PARSER_DIR + "/include/internal/csv_row.cpp",
+    CSV_PARSER_DIR + "/include/internal/csv_utility.cpp",
+]
+csv_objects = [csv_env.SharedObject(source=src) for src in csv_library_sources]
+
+# Collects all .cpp files in the 'src' folder as compile targets, except
+# resource_table_utils.cpp, which is compiled under csv_env instead (see
+# above) since it's the one file that includes csv-parser and needs
+# exceptions enabled. SharedObject (not Object) so these are PIC-compatible
+# with the SharedLibrary target below.
+sources = [s for s in Glob("src/*.cpp") if s.name != "resource_table_utils.cpp"]
+sources.append(csv_env.SharedObject(source="src/resource_table_utils.cpp"))
+sources += csv_objects
 
 if env["target"] in ["editor", "template_debug"]:
     try:

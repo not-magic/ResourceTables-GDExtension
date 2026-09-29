@@ -2,3 +2,6 @@
 	path = godot-cpp
 	url = https://github.com/godotengine/godot-cpp
 	branch = 4.5
+[submodule "csv-parser"]
+	path = csv-parser
+	url = https://github.com/vincentlaucsb/csv-parser

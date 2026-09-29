@@ -1,8 +1,10 @@
 #include "register_types.h"
 
 #include "resource_table.h"
+#include "resource_table_name.h"
 #include "resource_table_utils.h"
 #include "resource_tables_plugin.h"
+#include "resource_table_container.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/editor_plugin_registration.hpp>
@@ -21,9 +23,16 @@ void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		GDREGISTER_CLASS(ResourceTable);
 		GDREGISTER_CLASS(ResourceTableUtils);
+		// A general-purpose Control (not editor-only), unlike everything
+		// else registered below -- usable in any project's own scenes.
+		GDREGISTER_CLASS(ResourceTableContainer);
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+		// Internal: a plain reusable widget for ResourceTablesPlugin's own
+		// Name cell -- not meant to show up in the "Create New Node" dialog
+		// or be instantiated from a script.
+		GDREGISTER_INTERNAL_CLASS(ResourceTableName);
 		GDREGISTER_CLASS(ResourceTablesPlugin);
 		EditorPlugins::add_by_type<ResourceTablesPlugin>();
 	}
