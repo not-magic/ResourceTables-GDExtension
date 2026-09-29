@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://cxrwmireu3add"]
+
+[node name="GridTest" type="Control" unique_id=272245599]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="." unique_id=1120137843]
+layout_mode = 0
+offset_right = 266.0
+offset_bottom = 58.0
+columns = 3
+
+[node name="Label" type="Label" parent="GridContainer" unique_id=1248734245]
+layout_mode = 2
+text = "Narrow"
+
+[node name="Label2" type="Label" parent="GridContainer" unique_id=1483105736]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "WIDE"
+
+[node name="Label3" type="Label" parent="GridContainer" unique_id=2013253453]
+layout_mode = 2
+text = "Narrow"
+
+[node name="SpinBox" type="SpinBox" parent="GridContainer" unique_id=122568203]
+layout_mode = 2
+
+[node name="SpinBox2" type="SpinBox" parent="GridContainer" unique_id=690268768]
+layout_mode = 2
+
+[node name="SpinBox3" type="SpinBox" parent="GridContainer" unique_id=276643736]
+layout_mode = 2
+
+[node name="VScrollBar" type="VScrollBar" parent="." unique_id=688129753]
+layout_mode = 0
+offset_left = 344.0
+offset_top = 36.0
+offset_right = 352.0
+offset_bottom = 313.0
+theme_override_constants/padding_left = 3
+theme_override_constants/padding_right = 3
