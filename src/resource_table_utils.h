@@ -10,7 +10,7 @@
 namespace godot {
 
 class ResourceTableUtils : public Object {
-	GDCLASS(ResourceTableUtils, Object)
+	GDCLASS(ResourceTableUtils, Object) // NOLINT
 
 protected:
 	static void _bind_methods();

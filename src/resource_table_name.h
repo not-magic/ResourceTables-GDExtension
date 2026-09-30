@@ -14,7 +14,7 @@ namespace godot {
 // Actions rescan the filesystem to reach the plugin's filesystem_changed listener; only Delete
 // emits "delete_requested" (it acts on the whole selection).
 class ResourceTableName : public Control {
-	GDCLASS(ResourceTableName, Control)
+	GDCLASS(ResourceTableName, Control) // NOLINT
 
 private:
 	enum ContextMenuId {

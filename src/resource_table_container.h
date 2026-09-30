@@ -17,7 +17,7 @@
 namespace godot {
 
 class ResourceTableContainer : public Container {
-	GDCLASS(ResourceTableContainer, Container)
+	GDCLASS(ResourceTableContainer, Container) // NOLINT
 
 public:
 	enum SortDirection {

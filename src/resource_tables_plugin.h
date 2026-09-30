@@ -23,7 +23,7 @@
 namespace godot {
 
 class ResourceTablesPlugin : public EditorPlugin {
-	GDCLASS(ResourceTablesPlugin, EditorPlugin)
+	GDCLASS(ResourceTablesPlugin, EditorPlugin) // NOLINT
 
 private:
 	Control *main_panel = nullptr;

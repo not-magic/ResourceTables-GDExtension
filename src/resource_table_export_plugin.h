@@ -6,7 +6,7 @@
 namespace godot {
 
 class ResourceTableExportPlugin : public EditorExportPlugin {
-	GDCLASS(ResourceTableExportPlugin, EditorExportPlugin)
+	GDCLASS(ResourceTableExportPlugin, EditorExportPlugin) // NOLINT
 
 private:
 	Callable generate_callback;

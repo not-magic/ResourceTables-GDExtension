@@ -5,7 +5,7 @@
 namespace godot {
 
 class ResourceTable : public Resource {
-	GDCLASS(ResourceTable, Resource)
+	GDCLASS(ResourceTable, Resource) // NOLINT
 
 protected:
 	static void _bind_methods() {}

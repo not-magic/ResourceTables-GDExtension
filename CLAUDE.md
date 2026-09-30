@@ -202,6 +202,8 @@ only lays them out (`_resort()`, flush against the container's own edges, `SCROL
 which could otherwise leave little to no room for the grabber inside that width) and mirrors their
 `Range` value into its own `cached_h_offset`/`cached_v_offset` fields.
 
+**Rule: Run `scons tidy` and fixup results after every change.**
+
 **Rule: don't reimplement an engine Control to work around a rendering/behavior problem.** An
 earlier version of this class custom-drew and custom-dragged both scrollbars from scratch after a
 real `VScrollBar`/`HScrollBar` first appeared not to render. That reimplementation was removed and

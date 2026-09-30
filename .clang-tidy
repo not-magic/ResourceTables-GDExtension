@@ -14,6 +14,7 @@ Checks:
   - readability-identifier-naming
   - readability-operators-representation
   - readability-redundant-member-init
+  - misc-const-correctness
 HeaderFileExtensions: ["", h, hh, hpp, hxx, inc, glsl]
 ImplementationFileExtensions: [c, cc, cpp, cxx, m, mm, java]
 HeaderFilterRegex: (core|doc|drivers|editor|main|modules|platform|scene|servers|tests)/
