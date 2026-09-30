@@ -1,10 +1,4 @@
-// Native unit test stub for this GDExtension. Tests here build and run as a
-// plain native program -- no godot-cpp linking, no running Godot process
-// required -- for engine-independent logic (e.g. math/data helpers) as it
-// gets added to src/. Build and run with `scons tests`.
-//
-// Replace this stub with real assertions once the extension has
-// engine-independent logic to test.
+// Native unit tests (no godot-cpp, no Godot process) for engine-independent logic; run with `scons tests`.
 
 #include <cstdio>
 
@@ -12,8 +6,8 @@ namespace {
 
 int failures = 0;
 
-void expect(bool p_condition, const char *p_label) {
-	if (!p_condition) {
+void expect(bool p_is_true, const char *p_label) {
+	if (!p_is_true) {
 		std::fprintf(stderr, "FAIL: %s\n", p_label);
 		failures++;
 	} else {

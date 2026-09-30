@@ -21,8 +21,30 @@
 
 using namespace godot;
 
+namespace {
+
+constexpr float MAX_RENAME_EDIT_WIDTH = 200.0f;
+
+float measure_rename_edit_min_width(const LineEdit *p_edit, const String &p_text) {
+	Ref<Font> font = p_edit->get_theme_font(StringName("font"));
+	if (!font.is_valid()) {
+		font = p_edit->get_theme_default_font();
+	}
+	if (!font.is_valid()) {
+		return 0.0f;
+	}
+	int font_size = p_edit->get_theme_font_size(StringName("font_size"));
+	if (font_size <= 0) {
+		font_size = p_edit->get_theme_default_font_size();
+	}
+	const float text_width = font->get_string_size(p_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x;
+	return MIN(MAX_RENAME_EDIT_WIDTH, text_width);
+}
+
+} // namespace
+
 void ResourceTableName::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_natural_width"), &ResourceTableName::get_natural_width);
+	ClassDB::bind_method(D_METHOD("calc_natural_width"), &ResourceTableName::calc_natural_width);
 
 	ADD_SIGNAL(MethodInfo("delete_requested"));
 }
@@ -41,27 +63,12 @@ ResourceTableName::ResourceTableName() {
 	rename_edit->connect("gui_input", callable_mp(this, &ResourceTableName::_on_rename_gui_input));
 	add_child(rename_edit);
 
-	// Icon names/pairings match the FileSystem dock's own per-file context
-	// menu exactly (editor/docks/filesystem_dock.cpp) -- "Copy Absolute
-	// Path" has no icon there either. No "Edit Dependencies.../View
-	// Owners...": those open the engine's own DependencyEditor/
-	// DependencyEditorOwners dialogs, and while both classes ARE registered
-	// in ClassDB, neither binds a single method (confirmed with
-	// ClassDB.class_get_method_list() at runtime) -- there's no way to
-	// construct or drive one reflectively from a GDExtension. "Open in
-	// Inspector" has no FileSystem-dock counterpart to mirror either (that
-	// dock's own equivalent is its default double-click gesture, not a menu
-	// item) -- it's this menu's own addition, ahead of the group that
-	// otherwise mirrors the FileSystem dock's menu item-for-item.
-	Control *editor_base = EditorInterface::get_singleton()->get_base_control();
+	// Icons mirror filesystem_dock.cpp. No Edit Dependencies/View Owners: DependencyEditor(Owners)
+	// bind no methods, so they can't be driven from a GDExtension. Open in Inspector is our own addition.
+	const Control *const editor_base = EditorInterface::get_singleton()->get_base_control();
 	context_menu = memnew(PopupMenu);
 	context_menu->add_item("Open in Inspector", CONTEXT_OPEN);
-	// A real, exposed FileSystemDock method -- matches
-	// EditorResourcePicker's own "Show in FileSystem" handler exactly:
-	// FileSystemDock::navigate_to_path() (confirmed by reading
-	// editor/inspector/editor_resource_picker.cpp in Godot's own source),
-	// just reached through EditorInterface::get_file_system_dock() instead
-	// of that class' own (GDExtension-inaccessible) get_singleton().
+	// Same call as EditorResourcePicker's handler, via EditorInterface (FileSystemDock::get_singleton() isn't exposed).
 	context_menu->add_icon_item(editor_base->get_theme_icon("ShowInFileSystem", "EditorIcons"), "Show in FileSystem", CONTEXT_SHOW_IN_FILESYSTEM);
 	context_menu->add_separator();
 	context_menu->add_icon_item(editor_base->get_theme_icon("ActionCopy", "EditorIcons"), "Copy Path", CONTEXT_COPY_PATH);
@@ -74,8 +81,6 @@ ResourceTableName::ResourceTableName() {
 	context_menu->connect("id_pressed", callable_mp(this, &ResourceTableName::_on_context_menu_id_pressed));
 	add_child(context_menu);
 
-	// Shared by "Duplicate..." and "Move/Duplicate To..." -- which one is
-	// active is tracked by duplicate_or_move_is_move.
 	duplicate_or_move_dialog = memnew(EditorFileDialog);
 	duplicate_or_move_dialog->set_access(EditorFileDialog::ACCESS_RESOURCES);
 	duplicate_or_move_dialog->set_file_mode(EditorFileDialog::FILE_MODE_SAVE_FILE);
@@ -86,7 +91,7 @@ ResourceTableName::ResourceTableName() {
 
 void ResourceTableName::_notification(int p_what) {
 	if (p_what == NOTIFICATION_RESIZED) {
-		Vector2 size = get_size();
+		const Vector2 size = get_size();
 		name_label->set_position(Vector2());
 		name_label->set_size(size);
 		rename_edit->set_position(Vector2());
@@ -103,21 +108,18 @@ Variant ResourceTableName::_get_drag_data(const Vector2 &p_at_position) {
 		return Variant();
 	}
 
-	// Matches EditorNode::drag_resource()'s own preview (icon over a label).
-	VBoxContainer *preview = memnew(VBoxContainer);
-	TextureRect *icon = memnew(TextureRect);
+	VBoxContainer *const preview = memnew(VBoxContainer);
+	TextureRect *const icon = memnew(TextureRect);
 	icon->set_custom_minimum_size(Vector2(48, 48));
 	icon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 	icon->set_texture(EditorInterface::get_singleton()->get_base_control()->get_theme_icon("FileBigThumb", "EditorIcons"));
 	preview->add_child(icon);
-	Label *preview_label = memnew(Label);
+	Label *const preview_label = memnew(Label);
 	preview_label->set_text(get_text());
 	preview_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 	preview->add_child(preview_label);
 	set_drag_preview(preview);
 
-	// The {"type": "resource", "resource": ...} shape EditorResourcePicker's
-	// own drop targets (e.g. an Inspector property slot) already accept.
 	Dictionary drag_data;
 	drag_data["type"] = "resource";
 	drag_data["resource"] = resource;
@@ -138,44 +140,28 @@ void ResourceTableName::set_resource(const Ref<Resource> &p_resource) {
 }
 
 void ResourceTableName::begin_rename() {
-	String text = name_label->get_text();
+	const String text = name_label->get_text();
 	rename_edit->set_text(text);
-	rename_edit->set_custom_minimum_size(Vector2(_measure_rename_edit_min_width(text), 0));
+	rename_edit->set_custom_minimum_size(Vector2(measure_rename_edit_min_width(rename_edit, text), 0));
 	name_label->set_visible(false);
 	rename_edit->set_visible(true);
 	rename_edit->grab_focus();
 	rename_edit->select_all();
 }
 
-float ResourceTableName::_measure_rename_edit_min_width(const String &p_text) const {
-	Ref<Font> font = rename_edit->get_theme_font(StringName("font"));
-	if (!font.is_valid()) {
-		font = rename_edit->get_theme_default_font();
-	}
-	if (!font.is_valid()) {
-		return 0.0f;
-	}
-	int font_size = rename_edit->get_theme_font_size(StringName("font_size"));
-	if (font_size <= 0) {
-		font_size = rename_edit->get_theme_default_font_size();
-	}
-	float text_width = font->get_string_size(p_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x;
-	return MIN(MAX_RENAME_EDIT_WIDTH, text_width);
-}
-
 bool ResourceTableName::is_renaming() const {
 	return rename_edit->is_visible();
 }
 
-float ResourceTableName::get_natural_width() const {
+float ResourceTableName::calc_natural_width() const {
 	name_label->set_clip_text(false);
-	float width = name_label->get_combined_minimum_size().x;
+	const float width = name_label->get_combined_minimum_size().x;
 	name_label->set_clip_text(true);
 	return width;
 }
 
 void ResourceTableName::_on_name_gui_input(const Ref<InputEvent> &p_event) {
-	Ref<InputEventMouseButton> mb = p_event;
+	const Ref<InputEventMouseButton> mb = p_event;
 	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_RIGHT) {
 		_popup_context_menu(name_label->get_screen_position() + mb->get_position());
 	}
@@ -194,14 +180,14 @@ void ResourceTableName::_on_rename_focus_exited() {
 }
 
 void ResourceTableName::_on_rename_gui_input(const Ref<InputEvent> &p_event) {
-	Ref<InputEventKey> key = p_event;
+	const Ref<InputEventKey> key = p_event;
 	if (key.is_valid() && key->is_pressed() && key->get_keycode() == KEY_ESCAPE) {
 		_cancel_rename();
 	}
 }
 
 void ResourceTableName::_commit_rename() {
-	String new_text = rename_edit->get_text();
+	const String new_text = rename_edit->get_text();
 	rename_edit->set_visible(false);
 	name_label->set_text(new_text);
 	name_label->set_visible(true);
@@ -221,7 +207,7 @@ void ResourceTableName::_commit_rename() {
 		return;
 	}
 
-	Error err = DirAccess::rename_absolute(old_path, new_path);
+	const Error err = DirAccess::rename_absolute(old_path, new_path);
 	if (err != OK) {
 		UtilityFunctions::push_error("ResourceTableName: failed to rename '", old_path, "' to '", new_path, "' (error ", (int64_t)err, ").");
 		return;
@@ -250,7 +236,7 @@ void ResourceTableName::_on_context_menu_id_pressed(int p_id) {
 	if (resource.is_null()) {
 		return;
 	}
-	String path = resource->get_path();
+	const String path = resource->get_path();
 
 	switch (p_id) {
 		case CONTEXT_OPEN: {
@@ -270,7 +256,7 @@ void ResourceTableName::_on_context_menu_id_pressed(int p_id) {
 			break;
 		}
 		case CONTEXT_COPY_UID: {
-			int64_t uid = ResourceLoader::get_singleton()->get_resource_uid(path);
+			const int64_t uid = ResourceLoader::get_singleton()->get_resource_uid(path);
 			if (uid != ResourceUID::INVALID_ID) {
 				DisplayServer::get_singleton()->clipboard_set(ResourceUID::get_singleton()->id_to_text(uid));
 			}
@@ -281,14 +267,14 @@ void ResourceTableName::_on_context_menu_id_pressed(int p_id) {
 			break;
 		}
 		case CONTEXT_DUPLICATE: {
-			duplicate_or_move_is_move = false;
+			is_move_mode = false;
 			duplicate_or_move_dialog->set_title("Duplicate Resource");
 			duplicate_or_move_dialog->set_current_file(path.get_file().get_basename() + "_copy." + path.get_extension());
 			duplicate_or_move_dialog->popup_centered_ratio(0.5);
 			break;
 		}
 		case CONTEXT_MOVE_TO: {
-			duplicate_or_move_is_move = true;
+			is_move_mode = true;
 			duplicate_or_move_dialog->set_title("Move/Duplicate To...");
 			duplicate_or_move_dialog->set_current_path(path);
 			duplicate_or_move_dialog->popup_centered_ratio(0.5);
@@ -310,14 +296,14 @@ void ResourceTableName::_on_duplicate_or_move_file_selected(String p_path) {
 		return;
 	}
 
-	Ref<Resource> to_save = duplicate_or_move_is_move ? resource : resource->duplicate(true);
-	Error save_err = ResourceSaver::get_singleton()->save(to_save, p_path);
+	const Ref<Resource> to_save = is_move_mode ? resource : resource->duplicate(true);
+	const Error save_err = ResourceSaver::get_singleton()->save(to_save, p_path);
 	if (save_err != OK) {
 		UtilityFunctions::push_error("ResourceTableName: failed to save '", p_path, "' (error ", (int64_t)save_err, ").");
 		return;
 	}
 
-	if (duplicate_or_move_is_move) {
+	if (is_move_mode) {
 		DirAccess::remove_absolute(old_path);
 		if (FileAccess::file_exists(old_path + ".uid")) {
 			DirAccess::remove_absolute(old_path + ".uid");

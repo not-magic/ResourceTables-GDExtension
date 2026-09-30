@@ -10,12 +10,12 @@ and editing `Resource` instances as spreadsheet-like tables.
 
 The panel has a single dropdown, labeled by an `Object` editor icon, listing (alphabetically, case-insensitive)
 every resource class name with at least one instance found anywhere under `res://` (a live scan, not a
-generated cache), excluding `ResourceTable` types themselves (see below) -- showing every resource
+generated cache), plus every project/plugin global class deriving from `Resource` even with no instances, excluding `ResourceTable` types themselves (see below) -- showing every resource
 of that type project-wide. Each item's metadata is just the class name; a selection is tracked
 across refreshes by item text. `ResourceTableGenerator` scripts are not listed in it at all -- they
-only take part through the Tools menu's "Run Generators" and "New ResourceTable Generator...". The top row is laid out
+only take part through the Tools menu's "Generate ResourceTables" and "New ResourceTable Generator...". The top row is laid out
 compacted to the left (labels/dropdowns/buttons sized to content, an expanding spacer control
-absorbing the rest) with the "Tools" `MenuButton` (New ResourceTable Generator.../Run Generators/Export/Import CSV) pinned to the
+absorbing the rest) with the "Tools" `MenuButton` (New ResourceTable Generator.../Generate ResourceTables/Export/Import CSV) pinned to the
 right after that spacer; "Add" (creates a new resource of the dropdown's type via a plain save-file
 prompt) is a `Button` next to the dropdown.
 
@@ -28,7 +28,7 @@ the default implementation "New ResourceTable Generator..." stubs in -- it write
 ResourceTable`, adding a single `@export var items: Array`).
 `ResourceTable` itself (`src/resource_table.h`) is a thin native marker class, just `Resource`
 with no members -- its only job is letting
-`ResourceTableUtils::find_resource_type_names_with_instances()` recognize and exclude its own
+`ResourceTableUtils::find_resource_type_names()` recognize and exclude its own
 instances (`resource->is_class("ResourceTable")`) from the dropdown, since a generator's own output
 table isn't itself a browsable resource type. Nothing in `src/` ever constructs or inspects a
 `GenericResourceTable`'s own `items` by name -- that property, and the whole
@@ -77,7 +77,7 @@ authoritative record of a column's state" (see that struct's own comment) rather
 parallel arrays. A column's `width` defaults to auto-fitting the widest cell actually in it --
 header text included, so a long column title doesn't get clipped just because no row happens to
 need that much width -- recomputed at the top of every `_resort()` for any column whose own
-`width_is_auto` is still true. A column starts out auto (`set_columns` only assigns a *new* index,
+`is_width_auto` is still true. A column starts out auto (`set_columns` only assigns a *new* index,
 beyond whatever was already stored, a starting fallback width from its own `default_widths`
 argument, used only until that column actually has cells to measure) and stays that way until the
 user drag-resizes it or a caller calls `set_column_width()` directly, either of which sets
@@ -98,10 +98,10 @@ column down to `MIN_COLUMN_WIDTH`. `_measure_cell_natural_width()` (file-local, 
 `resource_table_container.cpp`) handles this two ways: first it checks -- dynamically, via
 `has_method()`, not a compile-time cast, since `ResourceTableContainer` doesn't know about
 `ResourceTableName` by name (it's registered at scene level, meant to stay a general-purpose,
-addon-agnostic `Container`) -- whether the cell exposes a `get_natural_width()` method and trusts
+addon-agnostic `Container`) -- whether the cell exposes a `calc_natural_width()` method and trusts
 whatever it returns if so; otherwise it falls back to `Object::cast_to<Button>`, and if the cast
 succeeds and `get_clip_text()` is on, briefly toggling it off, reading
-`get_combined_minimum_size().x`, then restoring it. `ResourceTableName::get_natural_width()` (see
+`get_combined_minimum_size().x`, then restoring it. `ResourceTableName::calc_natural_width()` (see
 below) implements the same toggle-and-measure trick internally for its own private `Button`, since
 that one isn't reachable from outside the class at all.
 
@@ -151,7 +151,7 @@ force-ends a resize/pan drag the moment it notices the button genuinely isn't he
 of waiting for a release event that may never arrive.
 
 `header_height` is a floor (`DEFAULT_HEADER_HEIGHT`, 26px), not a fixed value -- recomputed at the
-top of every `_resort()` via `_get_preferred_header_height()` (font ascent+descent plus
+top of every `_resort()` via `_calc_preferred_header_height()` (font ascent+descent plus
 `HEADER_VERTICAL_PADDING` on each side) to also grow to fit the header's own text at whatever font
 size the editor theme is currently using, so a larger editor font doesn't get its header text
 clipped against a hardcoded height.
@@ -161,7 +161,7 @@ Every column header's text and sort-direction icon are drawn directly by `_draw_
 signal) -- there is no per-column header `Control` of any kind, `Button`-based or otherwise; text
 is drawn with `draw_string()` (centered, word-bound/ellipsis-constrained justification) and the
 sort icon, if any, with `draw_texture_rect()` (`"GuiTreeArrowDown"`/`"GuiArrowUp"` from the
-`"EditorIcons"` theme, right-aligned). `_get_column_natural_width()` mirrors this exact layout
+`"EditorIcons"` theme, right-aligned). `_calc_column_natural_width()` mirrors this exact layout
 (text width via `Font::get_string_size()`, plus `HEADER_TEXT_PADDING` on each side and an icon
 reserve when sorted) so the auto-fit pass above agrees with what actually gets drawn. The header
 background itself (`header_background_style`, a `StyleBoxFlat` lightened off the editor theme's own
@@ -250,7 +250,7 @@ via the FileSystem dock), so no dedicated signal back to the plugin is needed fo
 
 `ResourceTableContainer`'s own auto-fit sizing (`_measure_cell_natural_width`, see above) can't
 reach into `name_label` directly since it's private to `ResourceTableName` -- that's what its own
-`get_natural_width()` (duck-typed via `has_method()`) answers instead, doing the same
+`calc_natural_width()` (duck-typed via `has_method()`) answers instead, doing the same
 toggle-`clip_text`-off-and-back-on measurement internally. `ResourceTableName` also overrides
 `_get_minimum_size()` (`Control`'s own overridable minimum-size hook, not the public non-virtual
 `get_minimum_size()`) to return `name_label`'s own combined minimum size -- only a `Container`
@@ -361,7 +361,7 @@ signal, the same as renaming above.
 Clicking a column header calls `_on_sort_header_pressed(logical_column)` (via
 `ResourceTableContainer`'s own `"sort_requested"` signal -- see above for how a header click is
 actually detected, there being no per-column `Button` to fire one natively), toggling
-`sort_ascending` if it's already the active sort column or resetting to ascending on a new one,
+`is_sort_ascending` if it's already the active sort column or resetting to ascending on a new one,
 then rebuilding. Dragging the boundary between two headers instead resizes that column (see
 `ResourceTableContainer`'s own column drag-resize, above) -- there's still no click-and-drag column
 *reordering*, only resizing.
@@ -390,12 +390,15 @@ uses elsewhere in this file to sidestep that exact restriction doesn't work here
 `export_resource_tables.gd` finds every generator script in the project
 (`ResourceTableUtils.find_generator_scripts()`), instantiates one of each, and calls
 `_generate_outputs()` directly, for bulk regeneration -- it never scans for or resaves any generator
-*instance*, since there's no such persisted thing to find. That script can be run by hand (File >
-Run in the Script Editor), but `ResourceTablesPlugin` also loads and runs it programmatically (as
-an `EditorScript`, via its `_run()`) in two places: a "Run Generators" Tools-menu action, and
-automatically whenever `EditorFileSystem`'s `filesystem_changed` signal fires (i.e. an on-disk
-add/delete/reimport -- there's no more granular "a Resource was added or deleted" signal to hook
-instead, but this doesn't fire on every in-editor property edit, only actual file-level changes).
+*instance*, since there's no such persisted thing to find. Its `export_tables(modified_resource := "")` (a
+`Script` subclass, not an `EditorScript`, called via `script->call()` from `_run_export_tables`) runs every generator,
+or only those whose `_resource_class_name` is compatible with `modified_resource` when one is given. It's called with
+no argument for the "Generate ResourceTables" Tools-menu action, before a build (`EditorPlugin::_build()`), and game export (`ResourceTableExportPlugin`, an
+`EditorExportPlugin` whose `_export_begin` calls back into the plugin). Automatic regeneration is per-generator: on
+`filesystem_changed`, `_sync_generators()` snapshots (path -> modified-time) every resource of each generator's
+`_resource_class_name` and calls `export_tables(class)` for each whose snapshot changed, or that has none yet (a
+newly created generator). A generator's own output tables aren't of its handled type, so its writes can't retrigger
+it. `_sync_generators(false)` at startup only records snapshots.
 
 "New ResourceTable Generator..." (a Tools-menu item) is a single `ConfirmationDialog` (`new_generator_dialog`) with two
 rows: a "Resource Class" `LineEdit` (free text -- it doesn't have to already resolve to an existing
@@ -444,6 +447,8 @@ All commands run from the repo root via SCons.
 scons                                   # build the extension for the host platform, default target
 scons platform=<linux|windows|macos> target=<template_debug|template_release>
 scons tests                             # build and run the native unit tests in tests/
+scons format                            # clang-format -i over src/ and tests/ (.clang-format)
+scons tidy                              # clang-tidy over src/*.cpp with the real build's flags (.clang-tidy)
 scons docs                              # regenerate doc_classes/*.xml (via Godot --doctool) AND docs/*.md
 scons update_wiki                       # regenerate only docs/*.md from the current doc_classes/*.xml
 ```

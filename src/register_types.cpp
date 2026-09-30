@@ -1,6 +1,7 @@
 #include "register_types.h"
 
 #include "resource_table.h"
+#include "resource_table_export_plugin.h"
 #include "resource_table_name.h"
 #include "resource_table_utils.h"
 #include "resource_tables_plugin.h"
@@ -13,26 +14,18 @@
 
 using namespace godot;
 
-// Note: godot-cpp only defines TOOLS_ENABLED when target=editor (building an
-// engine module), not target=template_debug (what the stock Godot editor
-// actually loads a GDExtension as). So editor-only registration below isn't
-// guarded by that macro -- it's compiled in for every target, and instead
-// relies on MODULE_INITIALIZATION_LEVEL_EDITOR only ever being reached when
-// this extension is actually running inside an editor process.
+// godot-cpp only defines TOOLS_ENABLED for target=editor, so editor-only registration
+// isn't macro-guarded; it relies on the EDITOR init level only being reached in an editor.
 void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		GDREGISTER_CLASS(ResourceTable);
 		GDREGISTER_CLASS(ResourceTableUtils);
-		// A general-purpose Control (not editor-only), unlike everything
-		// else registered below -- usable in any project's own scenes.
 		GDREGISTER_CLASS(ResourceTableContainer);
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		// Internal: a plain reusable widget for ResourceTablesPlugin's own
-		// Name cell -- not meant to show up in the "Create New Node" dialog
-		// or be instantiated from a script.
 		GDREGISTER_INTERNAL_CLASS(ResourceTableName);
+		GDREGISTER_INTERNAL_CLASS(ResourceTableExportPlugin);
 		GDREGISTER_CLASS(ResourceTablesPlugin);
 		EditorPlugins::add_by_type<ResourceTablesPlugin>();
 	}
@@ -46,7 +39,7 @@ void uninitialize_resource_tables_module(ModuleInitializationLevel p_level) {
 
 extern "C" {
 GDExtensionBool GDE_EXPORT resource_tables_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
-	godot::GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
+	const godot::GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
 
 	init_obj.register_initializer(initialize_resource_tables_module);
 	init_obj.register_terminator(uninitialize_resource_tables_module);
