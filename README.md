@@ -1,12 +1,12 @@
 # ResourceTables
 
-If you have used Unreal before, you might be wondering: What Godot's equivalent to DataTables?
+If you have used Unreal before, you might be wondering: What is Godot's equivalent to DataTables?
 
-I have spent years supporting Unreal `DataTable` workflows on AAA games and I believe there is a better design hidden in Godot data formats already: **Treating Resources as rows in a table**.
+I have spent years supporting Unreal `DataTable` workflows on AAA games and I believe there is a better design hidden in Godot data formats already: **treating `Resources` as rows in a table**.
 
 ## Resources Table Editor
 
-The main reason `DataTable` is used in Unreal is because it's more convenient to edit groups of related things together. This means *it's not actually a data format problem, it's a tools problem*. This extension adds a **Resources** view in the bottom dock panel where you can bulk edit all the resources you have in your game. This is a high-quality view, limited only by what editor functionality is exposed to a GDExtension.
+The main reason `DataTable` is used in Unreal is because it's more convenient to edit groups of related things together. This means *it's not actually a data format problem, it's a tools problem*. This extension adds a **Resources** view in the bottom dock panel where you can bulk edit all the resources you have in your game. This is a full-featured table editor, limited only by what editor functionality is exposed to a GDExtension.
 
 ![Screenshot of the table view in action](images/WeaponTuning.png)
 
@@ -21,7 +21,7 @@ Your resource types must have a `class_name` assigned for them to appear!
 
 ## ResourceTable for Runtime
 
-The second reason people use `DataTable` is to be able to iterate over all rows at runtime. You might have a list of all `WeaponDrop` resources in the game and you can loop over all of them to determine what loot to spawn. This `WeaponDrop` resource should probably be placed next to the weapon scene or definition to keep it self-contained.  **ResourceTables** adds a lightweight `@tool` generator interface that is hooked up to run when saving new resources or exporting the game. It has no restrictions on your output table formats or location, or even the number of outputs it has. 
+The second reason people use `DataTable` is to be able to iterate over all rows at runtime. You might have a list of all `WeaponDrop` resources in the game and you can loop over all of them to determine what loot to spawn. This `WeaponDrop` resource should probably be placed next to the weapon scene or definition to keep it self-contained.  **ResourceTables** adds a lightweight `@tool` generator interface that is hooked up to run when saving new resources or exporting the game. It has no restrictions on what you generate, so you can write your own type-safe types, or write types that are in native extensions of your own.
 
 This generator can also assist making table editing easier by giving sensible defaults to resource names and locations, when appropriate.
 
@@ -56,7 +56,7 @@ It's not very often that `DataTables` are referenced directly, usually you refer
 
 `DataTables` are difficult to manage across a team, because any edits to one row lock the entire table. But in Godot `Resources` are individual files.
 
-`DataTables` are limited to rows of the exact same type. Because `ResourceTables` still have the resource class hierarchy, you can edit base types together, and store them mixed in a generated table if you want. 
+`DataTables` are limited to rows of the exact same type. Because `ResourceTables` still have the resource class hierarchy, you can edit base types together, and even export them together if you wish.
 
 Unreal still needed a way to dynamically combine multiple `DataTables` into one thing, which is why they introduced `DataRegistries`. This lets them define a `DataTable` in a feature plugin, then stitch them together in a virtual table which is the `DataRegistry`. These then need an entirely new API for referencing data registry row handles which is complicated and is often not setup in a project correctly. *This basically means `DataTables` in Unreal are a bit of tech debt, and shouldn't be used directly for things you want to be a global table anyway*. `ResourceTables` solve this problem before it begins.
 
