@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="BBB" format=3 uid="uid://cir0pj7040deh"]
-
-[ext_resource type="Resource" uid="uid://d03hqcd1cgla4" path="res://ResourceTables/BigAAA_items/BigAAA_2.tres" id="1_p7mg8"]
-[ext_resource type="Script" uid="uid://cmnwvftywh6iu" path="res://ResourceTypes/BBB.gd" id="1_wqqul"]
-
-[resource]
-script = ExtResource("1_wqqul")
-aaa = ExtResource("1_p7mg8")

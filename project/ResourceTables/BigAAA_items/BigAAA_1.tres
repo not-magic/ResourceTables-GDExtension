@@ -1,6 +1,0 @@
-[gd_resource type="Resource" script_class="AAA" format=3 uid="uid://b2miacy01aecs"]
-
-[ext_resource type="Script" uid="uid://cf4tlu2d3xhsb" path="res://ResourceTypes/AAA.gd" id="1_qwuec"]
-
-[resource]
-script = ExtResource("1_qwuec")

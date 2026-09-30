@@ -1,20 +1,8 @@
-[gd_resource type="Resource" script_class="GenericResourceTable" format=3 uid="uid://cg4r87rdaw026"]
+[gd_resource type="ResourceTable" script_class="GenericResourceTable" format=3 uid="uid://cg4r87rdaw026"]
 
-[ext_resource type="Resource" uid="uid://db56miuhva5hb" path="res://AAA_4.tres" id="1_cay1i"]
-[ext_resource type="Resource" uid="uid://cy3s7o84b5y15" path="res://AAA_11.tres" id="2_51alg"]
-[ext_resource type="Resource" uid="uid://dfofnqqlxgwef" path="res://AAA_7.tres" id="3_56q4n"]
-[ext_resource type="Resource" uid="uid://cuygiwj1gs3xl" path="res://AAA_6.tres" id="4_ulr1l"]
-[ext_resource type="Resource" uid="uid://cmbjo7v08w51o" path="res://AAA_3.tres" id="5_6hk2h"]
-[ext_resource type="Resource" uid="uid://df2jg2w0x7ih4" path="res://AAA_8.tres" id="6_5pme3"]
-[ext_resource type="Resource" uid="uid://uchsdimo6kg8" path="res://AAA_12.tres" id="7_c080y"]
-[ext_resource type="Resource" uid="uid://kdqj8bjqximk" path="res://AAA_9.tres" id="8_6gxpt"]
-[ext_resource type="Resource" uid="uid://b4vtfwktkjig2" path="res://ResourceTables/BigAAA_items/BigAAA_0.tres" id="9_3e65y"]
-[ext_resource type="Resource" uid="uid://dwg77tmumvg3i" path="res://AAA_5.tres" id="10_vs6p1"]
-[ext_resource type="Resource" uid="uid://dkaipab8kgwwl" path="res://AAA_0.tres" id="11_rne5n"]
-[ext_resource type="Resource" uid="uid://dldcg7rx8223s" path="res://AAA_10.tres" id="12_5o6dd"]
-[ext_resource type="Resource" uid="uid://jg1ecbd05mo5" path="res://AAA_2.tres" id="13_xdro5"]
-[ext_resource type="Script" uid="uid://ujdjn6ijlkef" path="res://addons/ResourceTables/GenericResourceTable.gd" id="14_3p6iu"]
+[ext_resource type="Resource" uid="uid://db7lsy06l06hh" path="res://ResourceTables/AAA_0.tres" id="1_f6k25"]
+[ext_resource type="Script" uid="uid://ujdjn6ijlkef" path="res://addons/ResourceTables/GenericResourceTable.gd" id="1_p3emd"]
 
 [resource]
-script = ExtResource("14_3p6iu")
-items = [ExtResource("1_cay1i"), ExtResource("2_51alg"), ExtResource("3_56q4n"), ExtResource("4_ulr1l"), ExtResource("5_6hk2h"), ExtResource("6_5pme3"), ExtResource("7_c080y"), ExtResource("8_6gxpt"), ExtResource("9_3e65y"), ExtResource("10_vs6p1"), ExtResource("11_rne5n"), ExtResource("12_5o6dd"), ExtResource("13_xdro5")]
+script = ExtResource("1_p3emd")
+items = [ExtResource("1_f6k25")]

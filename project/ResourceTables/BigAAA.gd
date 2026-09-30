@@ -18,8 +18,9 @@ func _add_instance() -> Resource:
 	var new_item_path_name := "res://ResourceTables/BigAAA_items/%s.tres" % [ResourceTableUtils.find_safe_name("AAA", "BigAAA")] 
 	return ResourceTableUtils.create_instance("AAA", new_item_path_name)
 
-func _generate_output() -> void:
+func _generate_outputs() -> void:
 	# comment this out for default basic save logic
 	var output := ResourceTableUtils.find_or_create("GenericResourceTable", "res://ResourceTables/BigAAA.tres")
 	output.items = _get_items()
 	ResourceSaver.save(output)
+	print("saved %s" % [output.resource_path])
