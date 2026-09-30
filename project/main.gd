@@ -6,4 +6,3 @@ func _ready() -> void:
 	if aaa_table:
 		for item in aaa_table.items:
 			print(item.flt_val)
-	pass

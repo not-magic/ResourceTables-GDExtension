@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_5bvt5")
+flt_val = 4.096

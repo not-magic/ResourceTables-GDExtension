@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b0fyg1jqjxbsh" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Shader" uid="uid://dw4wgpearai5w" path="res://test_shader.gdshader" id="2_0xm2m"]
+[ext_resource type="Resource" uid="uid://cg4r87rdaw026" path="res://ResourceTables/BigAAA.tres" id="2_h2yge"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s5fb5"]
 render_priority = 0
@@ -14,6 +15,7 @@ material = SubResource("ShaderMaterial_s5fb5")
 
 [node name="Main" type="Node2D" unique_id=547416149]
 script = ExtResource("1_0xm2m")
+aaa_table = ExtResource("2_h2yge")
 
 [node name="MeshInstance2D" type="MeshInstance2D" parent="." unique_id=627594733]
 position = Vector2(0.0069185286, 0.8715561)

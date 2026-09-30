@@ -48,7 +48,7 @@ func _generate_outputs() -> void:
 Generators run automatically when resources of their type change, before a build, and on game export. You can write any
 resource table type you want, including your own types if you want them to be strictly typed or split into multiple tables.
 
-Generated tables should derive from `ResourceTable` to be excluded from the table view drop-down.
+Generated table classes are excluded from the table view drop-down by declaring a `@tool` script with `static var _show_in_resource_table_view := false`, as `GenericResourceTable` does.
 
 ## Why `ResourceTables` are better than `DataTables`
 

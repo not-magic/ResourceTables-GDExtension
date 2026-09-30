@@ -102,11 +102,12 @@ HashMap<StringName, StringName> calc_global_class_bases() {
 	return bases;
 }
 
-// Object::is_class() only sees the native class chain, so a script-derived
-// ResourceTable has to be resolved through the global class list instead.
-bool is_resource_table(const Ref<Resource> &p_resource, const HashMap<StringName, StringName> &p_global_class_bases) {
-	const Ref<Script> script = p_resource->get_script();
-	return script.is_valid() && has_ancestor_in_chain(script->get_global_name(), "ResourceTable", p_global_class_bases);
+bool is_hidden_in_table_view(const Ref<Script> &p_script) {
+	if (p_script.is_null()) {
+		return false;
+	}
+	const Variant is_shown = p_script->get("_show_in_resource_table_view");
+	return is_shown.get_type() == Variant::BOOL && !static_cast<bool>(is_shown);
 }
 
 void collect_resource_type_names_with_instances(const String &p_dir, const HashMap<StringName, StringName> &p_global_class_bases, HashSet<String> &r_results) {
@@ -131,7 +132,7 @@ void collect_resource_type_names_with_instances(const String &p_dir, const HashM
 		}
 
 		const Ref<Resource> resource = ResourceLoader::get_singleton()->load(full_path);
-		if (resource.is_null() || is_resource_table(resource, p_global_class_bases)) {
+		if (resource.is_null() || is_hidden_in_table_view(resource->get_script())) {
 			continue;
 		}
 
@@ -368,7 +369,7 @@ PackedStringArray ResourceTableUtils::find_resource_type_names() {
 	collect_resource_type_names_with_instances("res://", global_class_bases, names);
 
 	for (const KeyValue<StringName, StringName> &entry : global_class_bases) {
-		if (has_ancestor_in_chain(entry.value, "Resource", global_class_bases) && !has_ancestor_in_chain(entry.key, "ResourceTable", global_class_bases)) {
+		if (has_ancestor_in_chain(entry.value, "Resource", global_class_bases) && !is_hidden_in_table_view(find_script_for_class(entry.key))) {
 			names.insert(String(entry.key));
 		}
 	}

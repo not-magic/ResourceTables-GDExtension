@@ -10,7 +10,7 @@ and editing `Resource` instances as spreadsheet-like tables.
 
 The panel has a single dropdown, labeled by a `FileList` editor icon (with 8px left/right margins), listing (alphabetically, case-insensitive)
 every resource class name with at least one instance found anywhere under `res://` (a live scan, not a
-generated cache), plus every project/plugin global class deriving from `Resource` even with no instances, plus every generator's `_resource_class_name` that resolves to a known class, excluding `ResourceTable` types themselves (see below) -- showing every resource
+generated cache), plus every project/plugin global class deriving from `Resource` even with no instances, plus every generator's `_resource_class_name` that resolves to a known class, excluding any class whose script defines `static var _show_in_resource_table_view := false` (see below) -- showing every resource
 of that type project-wide, including instances of classes that inherit from it (only the selected
 type's own properties become columns). Each item's metadata is just the class name; a selection is tracked
 across refreshes by item text. `ResourceTableGenerator` scripts are not listed in it at all -- they
@@ -26,11 +26,10 @@ A `ResourceTableGenerator` subclass (see below) has a single job: `_generate_out
 format it wants (the editor doesn't care). See `new_resource_table_generator_template.txt` below for
 the default implementation "New ResourceTable Generator..." stubs in -- it writes a
 `GenericResourceTable` (`project/addons/resource_tables/generic_resource_table.gd`, `extends
-ResourceTable`, adding a single `@export var items: Array`).
-`ResourceTable` itself (`project/addons/resource_tables/resource_table.gd`) is a thin GDScript marker class, just `Resource`
-with no members -- its only job is letting
-`ResourceTableUtils::find_resource_type_names()` recognize and exclude its own
-subclasses (resolved through the global class list) from the dropdown, since a generator's own output
+Resource`, adding a single `@export var items: Array`).
+A table class opts out of the dropdown by defining `@tool` and `static var _show_in_resource_table_view := false`;
+`ResourceTableUtils` reads it from the script (inherited by subclasses) via `is_hidden_in_table_view()`, so table types need no
+dependency on this addon. A generator's own output
 table isn't itself a browsable resource type. Nothing in `src/` ever constructs or inspects a
 `GenericResourceTable`'s own `items` by name -- that property, and the whole
 generator/output-table split, lives entirely in `project/addons/resource_tables/*.gd` and could be

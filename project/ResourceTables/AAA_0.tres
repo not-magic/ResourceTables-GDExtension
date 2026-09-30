@@ -4,4 +4,5 @@
 
 [resource]
 script = ExtResource("1_gcq6i")
+flt_val = 4.337
 metadata/_custom_type_script = "uid://cf4tlu2d3xhsb"
