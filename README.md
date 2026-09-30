@@ -72,7 +72,7 @@ Unreal still needed a way to dynamically combine multiple `DataTables` into one 
 
 1. Download the latest `ResourceTables.zip` from the [Releases](../../releases) page.
 2. Extract it into your project so that `addons/resource_tables/` sits in `res://`.
-3. Enable **ResourceTables** in *Project > Project Settings > Plugins* (if listed), then reload the project.
+3. Reload your project
 
 Installation should also appear on the Godot asset store eventually.
 
