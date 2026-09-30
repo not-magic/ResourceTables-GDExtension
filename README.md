@@ -4,7 +4,7 @@ A Godot 4 GDExtension that adds a **Resources** bottom panel to the editor for b
 `Resource` instances as rows in a spreadsheet-like table, plus generators that bundle those resources
 into a single table resource at build time.
 
-![Screenshot of the table view in action](../../tree/main/images/WeaponTuning.png)
+![Screenshot of the table view in action](images/WeaponTuning.png)
 
 > Work in progress.
 
