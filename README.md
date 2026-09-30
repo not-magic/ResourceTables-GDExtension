@@ -6,8 +6,6 @@ into a single table resource at build time.
 
 ![Screenshot of the table view in action](images/WeaponTuning.png)
 
-> Work in progress.
-
 ## Features
 
 - **Table editor** — pick a resource type from the dropdown and see every instance under `res://`
