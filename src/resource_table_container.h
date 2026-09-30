@@ -1,20 +1,18 @@
 #pragma once
 
 #include <godot_cpp/classes/container.hpp>
-#include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/h_scroll_bar.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
-#include <godot_cpp/classes/texture2d.hpp>
-#include <godot_cpp/classes/v_scroll_bar.hpp>
 #include <godot_cpp/variant/color.hpp>
-#include <godot_cpp/variant/rect2.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 #include <set>
 #include <vector>
 
 namespace godot {
+
+class HScrollBar;
+class VScrollBar;
 
 class ResourceTableContainer : public Container {
 	GDCLASS(ResourceTableContainer, Container) // NOLINT

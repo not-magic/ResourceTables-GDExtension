@@ -1,15 +1,15 @@
 #pragma once
 
-#include <godot_cpp/classes/confirmation_dialog.hpp>
 #include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/editor_file_dialog.hpp>
 #include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/label.hpp>
-#include <godot_cpp/classes/line_edit.hpp>
-#include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/resource.hpp>
 
 namespace godot {
+
+class EditorFileDialog;
+class Label;
+class LineEdit;
+class PopupMenu;
 
 // Actions rescan the filesystem to reach the plugin's filesystem_changed listener; only Delete
 // emits "delete_requested" (it acts on the whole selection).

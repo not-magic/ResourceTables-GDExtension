@@ -1,26 +1,25 @@
 #pragma once
 
-#include "resource_table_container.h"
 #include "resource_table_export_plugin.h"
-#include "resource_table_name.h"
 
-#include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/confirmation_dialog.hpp>
-#include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/editor_file_dialog.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/label.hpp>
-#include <godot_cpp/classes/line_edit.hpp>
-#include <godot_cpp/classes/option_button.hpp>
-#include <godot_cpp/classes/popup_menu.hpp>
-#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/vector2.hpp>
 
 namespace godot {
+
+class Button;
+class ConfirmationDialog;
+class Control;
+class EditorFileDialog;
+class LineEdit;
+class OptionButton;
+class PopupMenu;
+class ResourceTableContainer;
 
 class ResourceTablesPlugin : public EditorPlugin {
 	GDCLASS(ResourceTablesPlugin, EditorPlugin) // NOLINT
