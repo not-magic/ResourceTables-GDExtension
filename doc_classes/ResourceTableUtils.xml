@@ -7,17 +7,35 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="import_csv" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="resource_class_name" type="StringName" />
+			<param index="1" name="resource_paths" type="PackedStringArray" />
+			<param index="2" name="path" type="String" />
+			<description>
+				Exposed in case users want to automate CSV editing. [param resource_class_name] is the name of the resource class you 
+				are editing. [param resource_paths] is a list of all of the path names you wish to import data for. [param path] is 
+				the output path for the .csv file.
+
+				If paths are in the .csv but not found in [param resource_paths], they will be created, and if paths are in the 
+				[param resouce_paths] but are not in the .csv they will be deleted. You can use this then for bulk edits of resources.
+			</description>
+		</method>
 		<method name="export_csv" qualifiers="static">
 			<return type="int" enum="Error" />
 			<param index="0" name="resource_class_name" type="StringName" />
 			<param index="1" name="resource_paths" type="PackedStringArray" />
 			<param index="2" name="path" type="String" />
 			<description>
+				Exposed in case users want to automate CSV editing. [param resource_class_name] is the name of the resource class you 
+				are editing. [param resource_paths] is a list of all of the path names you wish to export. [param path] is the output 
+				path for the .csv file.
 			</description>
 		</method>
 		<method name="find_generator_scripts" qualifiers="static">
 			<return type="Array" />
 			<description>
+				Used by the [code]export_resource_tables.gd[/code] script to find resource generator scripts.
 			</description>
 		</method>
 		<method name="find_or_create_resource" qualifiers="static">
@@ -25,20 +43,23 @@
 			<param index="0" name="class_name" type="StringName" />
 			<param index="1" name="path" type="String" />
 			<description>
+				This is a utility function for table generator scripts.
+
+				Godot doesn't like automation of deleting and re-creating resources, so this is a utility to find or create resource
+				files so you can edit or create them with the same API. The intended use case is to create the generated tables. 
+				Be aware that the items lists will need to be cleared or assigned if you are updating them.
 			</description>
 		</method>
 		<method name="find_resources_of_type" qualifiers="static">
 			<return type="Array" />
 			<param index="0" name="class_name" type="StringName" />
 			<description>
-			</description>
-		</method>
-		<method name="import_csv" qualifiers="static">
-			<return type="int" enum="Error" />
-			<param index="0" name="resource_class_name" type="StringName" />
-			<param index="1" name="resource_paths" type="PackedStringArray" />
-			<param index="2" name="path" type="String" />
-			<description>
+				This is a utility function for table generator scripts.
+
+				It finds all resources of a type and anything that inherits from it. The intended use case is to find resources
+				to assign to generated table items arrays.
+
+				If you want to do custom tables you can filter on these results as well.
 			</description>
 		</method>
 	</methods>
