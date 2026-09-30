@@ -67,7 +67,7 @@ cells are children of `body_clip`. Both regions, plus the two scrollbars, get th
 recomputed from scratch every `_resort()` call (columns are, in order: Name -- table column 0 is
 still a separate, title-less revert-to-disk icon column of its own, a plain `Button` built fresh
 per row by `_rebuild_table`, not owned by `ResourceTableContainer` or `ResourceTableName` -- then
-one column per property; `sort_column` on `ResourceTablesPlugin`'s side, 0 == Name, 1+i ==
+one column per property; `sort_column_index` on `ResourceTablesPlugin`'s side, 0 == Name, 1+i ==
 properties[i], is offset by one from `ResourceTableContainer`'s own 0-based column indices as a
 result, a conversion `_on_sort_header_pressed` is the one place that happens).
 
@@ -128,19 +128,19 @@ mis-order, z-fight, or leak a stuck hover/drag state from, unlike a design built
 per resize handle. `_separator_at_x(x)` and `_column_at_x(x)` are pure math over `columns`, called
 from both `_gui_input` (press/release/drag) and `_update_hover()` (per-frame highlight polling) --
 a press within `RESIZE_HANDLE_WIDTH` of a column's right edge starts a resize
-(`dragging_separator`), tracked by `drag_start_mouse_x`/`drag_start_width` and updated from the
+(`dragging_separator_index`), tracked by `drag_start_mouse_x`/`drag_start_width` and updated from the
 accumulated global-X delta on every `InputEventMouseMotion` while the button stays held (relying on
 the same "input stays routed to whichever control received the initial press, regardless of where
 the cursor physically moves" behavior sliders/scrollbars use natively); a press anywhere else in a
-column's own header area starts a sort-click instead (`press_column`), confirmed by
+column's own header area starts a sort-click instead (`press_column_index`), confirmed by
 `_column_at_x()` again on release matching the same column before emitting `"sort_requested"` --
 this is what a `Button`'s own `BaseButton` click detection would otherwise give for free, since
 there's no per-column `Button` here to provide it. Resize takes priority over sort when both would
 apply to the same press: landing within a separator's own hit region always starts a resize.
 
-Both `hovered_separator` (paints `resize_handle_hover_color` across that separator's own strip in
-`_on_header_draw`) and `dragging_separator` are read/cleared entirely from `_update_hover()`'s own
-per-frame `NOTIFICATION_INTERNAL_PROCESS` poll, the same poll `hovered_row` uses (see below) --
+Both `hovered_separator_index` (paints `resize_handle_hover_color` across that separator's own strip in
+`_on_header_draw`) and `dragging_separator_index` are read/cleared entirely from `_update_hover()`'s own
+per-frame `NOTIFICATION_INTERNAL_PROCESS` poll, the same poll `hovered_row_index` uses (see below) --
 recomputed fresh from `header_clip->get_local_mouse_position()` every tick rather than from
 discrete enter/exit/release signals (there being no per-separator Control to raise them from
 regardless), so a resize or scroll release outside the whole editor window can't leave a highlight
@@ -184,7 +184,7 @@ rather than drawn by a separate background `Control` per row. A per-row backgrou
 the first approach tried here and was deliberately abandoned: since row cells (Buttons,
 `EditorProperty`s) sit on top of it and are the topmost hit target wherever the mouse actually is,
 a background-only `Control`'s own `mouse_entered`/`mouse_exited` would only ever fire in the thin
-gaps between cells, not "anywhere across the row" the way a hover highlight should feel. Instead, `hovered_row` is tracked by polling
+gaps between cells, not "anywhere across the row" the way a hover highlight should feel. Instead, `hovered_row_index` is tracked by polling
 `body_clip->get_local_mouse_position()` every `NOTIFICATION_INTERNAL_PROCESS` tick
 (`_update_hover()`, `set_process_internal(true)` in the constructor) and comparing it against each
 row's cached rect -- independent of any child cell's own input handling or mouse filter, at the

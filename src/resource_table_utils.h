@@ -42,9 +42,9 @@ public:
 
 	struct ImportPreview {
 		Error error = ERR_DOES_NOT_EXIST;
-		int adds = 0;
-		int updates = 0;
-		int deletes = 0;
+		int add_total = 0;
+		int update_total = 0;
+		int delete_total = 0;
 	};
 
 	// Dry run of import_csv: counts what it would add/update/delete without

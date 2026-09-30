@@ -149,8 +149,8 @@ void collect_resource_type_names_with_instances(const String &p_dir, HashSet<Str
 }
 
 bool is_editable_property(const Dictionary &p_property_info) {
-	const int64_t usage = p_property_info["usage"];
-	return (usage & PROPERTY_USAGE_EDITOR) != 0;
+	const int64_t usage_flags = p_property_info["usage"];
+	return (usage_flags & PROPERTY_USAGE_EDITOR) != 0;
 }
 
 struct ResourceClassInfo {
@@ -257,8 +257,8 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 	const std::vector<std::string> &header = reader->get_col_names();
 
 	HashSet<String> seen_paths;
-	int adds = 0;
-	int updates = 0;
+	int add_total = 0;
+	int update_total = 0;
 
 	try {
 		for (const csv::CSVRow &row : *reader) {
@@ -277,9 +277,9 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 
 			const bool is_existing = ResourceLoader::get_singleton()->exists(path);
 			if (is_existing) {
-				updates++;
+				update_total++;
 			} else {
-				adds++;
+				add_total++;
 			}
 
 			if (!p_execute) {
@@ -297,13 +297,13 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 				continue;
 			}
 
-			for (size_t col = 1; col < header.size() && col < row.size(); col++) {
-				const StringName property_name = String::utf8(header[col].c_str());
+			for (size_t column_index = 1; column_index < header.size() && column_index < row.size(); column_index++) {
+				const StringName property_name = String::utf8(header[column_index].c_str());
 				const HashMap<StringName, Variant::Type>::ConstIterator type_it = property_types.find(property_name);
 				if (type_it == property_types.end()) {
 					continue;
 				}
-				const String cell = String::utf8(row[col].get<std::string>().c_str());
+				const String cell = String::utf8(row[column_index].get<std::string>().c_str());
 				resource->set(property_name, parse_csv_value(cell, type_it->value));
 			}
 
@@ -318,13 +318,13 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 		return result;
 	}
 
-	int deletes = 0;
+	int delete_total = 0;
 	for (int i = 0; i < p_resource_paths.size(); i++) {
 		const String existing_path = p_resource_paths[i];
 		if (existing_path.is_empty() || seen_paths.has(existing_path)) {
 			continue;
 		}
-		deletes++;
+		delete_total++;
 		if (p_execute) {
 			DirAccess::remove_absolute(existing_path);
 		}
@@ -341,9 +341,9 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 	}
 
 	result.error = OK;
-	result.adds = adds;
-	result.updates = updates;
-	result.deletes = deletes;
+	result.add_total = add_total;
+	result.update_total = update_total;
+	result.delete_total = delete_total;
 	return result;
 }
 

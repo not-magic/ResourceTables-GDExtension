@@ -82,18 +82,18 @@ private:
 	bool is_pan_dragging = false;
 
 	Vector2 hover_last_local_mouse;
-	int hovered_row = -1;
-	int selection_anchor = -1;
+	int hovered_row_index = -1;
+	int selection_anchor_index = -1;
 	int hover_last_h_offset = 0;
 	int hover_last_v_offset = 0;
 	bool is_hover_last_valid = false;
 
 	// Polled in _update_hover() rather than driven by signals, so a release outside the editor window can't stick.
-	int hovered_separator = -1;
-	int dragging_separator = -1;
+	int hovered_separator_index = -1;
+	int dragging_separator_index = -1;
 	int drag_start_mouse_x = 0;
 	int drag_start_width = 0;
-	int press_column = -1;
+	int press_column_index = -1;
 
 	void _resort();
 	void _update_hover();
@@ -117,15 +117,15 @@ public:
 	void _gui_input(const Ref<InputEvent> &p_event) override;
 	void _draw() override;
 
-	void set_columns(int p_columns, const std::vector<float> &p_default_widths);
+	void set_columns(int p_column_total, const std::vector<float> &p_default_widths);
 
-	void set_column_width(int p_column, float p_width);
+	void set_column_width(int p_column_index, float p_width);
 
-	void set_column_header_text(int p_column, const String &p_text);
-	void set_column_sort_direction(int p_column, SortDirection p_direction);
+	void set_column_header_text(int p_column_index, const String &p_text);
+	void set_column_sort_direction(int p_column_index, SortDirection p_direction);
 
 	int add_row();
-	void set_cell(int p_row, int p_column, Control *p_cell);
+	void set_cell(int p_row_index, int p_column_index, Control *p_cell);
 
 	PackedInt32Array get_selected_rows() const;
 	void clear_selection();

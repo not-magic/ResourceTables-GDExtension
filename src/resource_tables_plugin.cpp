@@ -60,12 +60,12 @@ const char *EXPORT_RESOURCE_TABLES_SCRIPT_PATH = "res://addons/resource_tables/e
 const char *DEFAULT_NEW_GENERATOR_PATH = "res://NewTable.gd";
 const char *NEW_GENERATOR_TEMPLATE_PATH = "res://addons/resource_tables/new_resource_table_generator_template.txt";
 
-String column_property_name(const Array &p_properties, int p_column) {
-	if (p_column == 1) {
+String column_property_name(const Array &p_properties, int p_column_index) {
+	if (p_column_index == 1) {
 		return "Name";
 	}
-	if (p_column >= 2 && p_column - 2 < p_properties.size()) {
-		const Dictionary info = p_properties[p_column - 2];
+	if (p_column_index >= 2 && p_column_index - 2 < p_properties.size()) {
+		const Dictionary info = p_properties[p_column_index - 2];
 		return info["name"];
 	}
 	return String();
@@ -125,7 +125,7 @@ String find_unused_resource_name(const String &p_dir, const String &p_class_name
 	}
 }
 
-bool is_before_by_sort_column(Variant p_a, Variant p_b, int p_sort_column, const Array &p_properties, bool p_is_ascending) {
+bool is_before_by_sort_column(Variant p_a, Variant p_b, int p_sort_column_index, const Array &p_properties, bool p_is_ascending) {
 	const Ref<Resource> a = p_a;
 	const Ref<Resource> b = p_b;
 	if (a.is_null() || b.is_null()) {
@@ -134,11 +134,11 @@ bool is_before_by_sort_column(Variant p_a, Variant p_b, int p_sort_column, const
 
 	Variant value_a;
 	Variant value_b;
-	if (p_sort_column == 0) {
+	if (p_sort_column_index == 0) {
 		value_a = a->get_path().get_file().get_basename();
 		value_b = b->get_path().get_file().get_basename();
 	} else {
-		const Dictionary info = p_properties[p_sort_column - 1];
+		const Dictionary info = p_properties[p_sort_column_index - 1];
 		const StringName property_name = info["name"];
 		value_a = a->get(property_name);
 		value_b = b->get(property_name);
@@ -380,7 +380,7 @@ void ResourceTablesPlugin::_on_type_selected(int p_index) {
 
 void ResourceTablesPlugin::_apply_type_selection(int p_index, bool p_is_sort_reset) {
 	if (p_is_sort_reset) {
-		sort_column = 0;
+		sort_column_index = 0;
 		is_sort_ascending = true;
 	}
 	current_resource_class_name = StringName(String(type_dropdown->get_item_metadata(p_index)));
@@ -408,7 +408,7 @@ void ResourceTablesPlugin::_rebuild_table() {
 	table->set_column_header_text(0, "");
 
 	table->set_column_header_text(1, "Name");
-	table->set_column_sort_direction(1, sort_column == 0 ? (is_sort_ascending ? ResourceTableContainer::SORT_ASCENDING : ResourceTableContainer::SORT_DESCENDING) : ResourceTableContainer::SORT_NONE);
+	table->set_column_sort_direction(1, sort_column_index == 0 ? (is_sort_ascending ? ResourceTableContainer::SORT_ASCENDING : ResourceTableContainer::SORT_DESCENDING) : ResourceTableContainer::SORT_NONE);
 	_apply_saved_column_width(1);
 
 	for (int i = 0; i < current_properties.size(); i++) {
@@ -416,14 +416,14 @@ void ResourceTablesPlugin::_rebuild_table() {
 		// Approximates the Inspector's label capitalization (EditorPropertyNameProcessor isn't exposed).
 		const String title = String(info["name"]).capitalize();
 		table->set_column_header_text(2 + i, title);
-		table->set_column_sort_direction(2 + i, sort_column == 1 + i ? (is_sort_ascending ? ResourceTableContainer::SORT_ASCENDING : ResourceTableContainer::SORT_DESCENDING) : ResourceTableContainer::SORT_NONE);
+		table->set_column_sort_direction(2 + i, sort_column_index == 1 + i ? (is_sort_ascending ? ResourceTableContainer::SORT_ASCENDING : ResourceTableContainer::SORT_DESCENDING) : ResourceTableContainer::SORT_NONE);
 		_apply_saved_column_width(2 + i);
 	}
 
 	Array resources = ResourceTableUtils::find_resources_of_type(current_resource_class_name);
 
-	if (sort_column >= 0 && sort_column <= current_properties.size()) {
-		resources.sort_custom(callable_mp_static(&is_before_by_sort_column).bind(sort_column, current_properties, is_sort_ascending));
+	if (sort_column_index >= 0 && sort_column_index <= current_properties.size()) {
+		resources.sort_custom(callable_mp_static(&is_before_by_sort_column).bind(sort_column_index, current_properties, is_sort_ascending));
 	}
 
 	const Control *const editor_base = EditorInterface::get_singleton()->get_base_control();
@@ -461,9 +461,9 @@ void ResourceTablesPlugin::_rebuild_table() {
 			const Variant::Type type = (Variant::Type)(int64_t)info["type"];
 			const PropertyHint hint = (PropertyHint)(int64_t)info["hint"];
 			const String hint_string = info["hint_string"];
-			const uint32_t usage = (uint32_t)(int64_t)info["usage"];
+			const uint32_t usage_flags = (uint32_t)(int64_t)info["usage"];
 
-			EditorProperty *const editor = EditorInspector::instantiate_property_editor(resource.ptr(), type, property_name, hint, hint_string, usage, false);
+			EditorProperty *const editor = EditorInspector::instantiate_property_editor(resource.ptr(), type, property_name, hint, hint_string, usage_flags, false);
 			if (!editor) {
 				Label *const fallback = memnew(Label);
 				fallback->set_text(resource->get(property_name).stringify());
@@ -480,20 +480,20 @@ void ResourceTablesPlugin::_rebuild_table() {
 	}
 }
 
-void ResourceTablesPlugin::_apply_saved_column_width(int p_column) {
-	const String property_name = column_property_name(current_properties, p_column);
+void ResourceTablesPlugin::_apply_saved_column_width(int p_column_index) {
+	const String property_name = column_property_name(current_properties, p_column_index);
 	if (property_name.is_empty()) {
 		return;
 	}
 	// -1 rather than Variant(): ConfigFile::get_value logs an error for a NIL default on a missing key.
-	const int saved = EditorInterface::get_singleton()->get_editor_settings()->get_project_metadata(current_resource_class_name, property_name, -1);
-	if (saved >= 0) {
-		table->set_column_width(p_column, saved);
+	const int saved_width = EditorInterface::get_singleton()->get_editor_settings()->get_project_metadata(current_resource_class_name, property_name, -1);
+	if (saved_width >= 0) {
+		table->set_column_width(p_column_index, saved_width);
 	}
 }
 
-void ResourceTablesPlugin::_on_column_resized(int p_column, int p_width) {
-	const String property_name = column_property_name(current_properties, p_column);
+void ResourceTablesPlugin::_on_column_resized(int p_column_index, int p_width) {
+	const String property_name = column_property_name(current_properties, p_column_index);
 	if (property_name.is_empty()) {
 		return;
 	}
@@ -501,15 +501,15 @@ void ResourceTablesPlugin::_on_column_resized(int p_column, int p_width) {
 }
 
 // p_table_column is the container's index (0 revert, 1 Name, 2+i properties), not sort_column's.
-void ResourceTablesPlugin::_on_sort_header_pressed(int p_table_column) {
-	if (p_table_column == 0) {
+void ResourceTablesPlugin::_on_sort_header_pressed(int p_table_column_index) {
+	if (p_table_column_index == 0) {
 		return;
 	}
-	const int clicked_sort_column = p_table_column - 1;
-	if (sort_column == clicked_sort_column) {
+	const int clicked_sort_column_index = p_table_column_index - 1;
+	if (sort_column_index == clicked_sort_column_index) {
 		is_sort_ascending = !is_sort_ascending;
 	} else {
-		sort_column = clicked_sort_column;
+		sort_column_index = clicked_sort_column_index;
 		is_sort_ascending = true;
 	}
 	_rebuild_table();
@@ -733,10 +733,10 @@ void ResourceTablesPlugin::_on_csv_file_selected(String p_path) {
 		return;
 	}
 
-	const int adds = preview.adds;
-	const int updates = preview.updates;
-	const int deletes = preview.deletes;
-	if (adds == 0 && updates == 0 && deletes == 0) {
+	const int add_total = preview.add_total;
+	const int update_total = preview.update_total;
+	const int delete_total = preview.delete_total;
+	if (add_total == 0 && update_total == 0 && delete_total == 0) {
 		return;
 	}
 
@@ -745,10 +745,10 @@ void ResourceTablesPlugin::_on_csv_file_selected(String p_path) {
 	import_confirm_dialog->set_text(
 			"Importing this CSV will:\n"
 			"  " +
-			String::num_int64(adds) + " resource(s) added\n" +
-			"  " + String::num_int64(updates) + " resource(s) updated\n" +
-			"  " + String::num_int64(deletes) + " resource(s) deleted\n\n"
-												"This cannot be undone. Continue?");
+			String::num_int64(add_total) + " resource(s) added\n" +
+			"  " + String::num_int64(update_total) + " resource(s) updated\n" +
+			"  " + String::num_int64(delete_total) + " resource(s) deleted\n\n"
+													 "This cannot be undone. Continue?");
 	import_confirm_dialog->popup_centered();
 }
 

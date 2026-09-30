@@ -47,7 +47,7 @@ private:
 	Array current_row_resources;
 	Array current_properties;
 	StringName current_resource_class_name;
-	int sort_column = 0; // 0 == Name (the default sort); N == properties[N - 1]
+	int sort_column_index = 0; // 0 == Name (the default sort); N == properties[N - 1]
 	bool is_sort_ascending = true;
 
 	// Tracks a continuous edit (e.g. slider drag): ticks apply live with no undo/rebuild; the session
@@ -68,9 +68,9 @@ private:
 	void _apply_type_selection(int p_index, bool p_is_sort_reset);
 	void _refresh_type_dropdown();
 	void _rebuild_table();
-	void _apply_saved_column_width(int p_column);
-	void _on_column_resized(int p_column, int p_width);
-	void _on_sort_header_pressed(int p_table_column);
+	void _apply_saved_column_width(int p_column_index);
+	void _on_column_resized(int p_column_index, int p_width);
+	void _on_sort_header_pressed(int p_table_column_index);
 	void _on_delete_requested();
 	void _on_delete_confirmed();
 	void _on_inspector_property_edited(String p_property);
