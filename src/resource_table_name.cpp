@@ -86,7 +86,6 @@ ResourceTableName::ResourceTableName() {
 	duplicate_or_move_dialog->set_file_mode(EditorFileDialog::FILE_MODE_SAVE_FILE);
 	duplicate_or_move_dialog->connect("file_selected", callable_mp(this, &ResourceTableName::_on_duplicate_or_move_file_selected));
 	add_child(duplicate_or_move_dialog);
-
 }
 
 void ResourceTableName::_notification(int p_what) {

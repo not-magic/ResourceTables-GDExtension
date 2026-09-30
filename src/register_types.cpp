@@ -1,11 +1,11 @@
 #include "register_types.h"
 
 #include "resource_table.h"
+#include "resource_table_container.h"
 #include "resource_table_export_plugin.h"
 #include "resource_table_name.h"
 #include "resource_table_utils.h"
 #include "resource_tables_plugin.h"
-#include "resource_table_container.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/editor_plugin_registration.hpp>

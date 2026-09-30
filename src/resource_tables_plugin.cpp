@@ -1,8 +1,8 @@
 #include "resource_tables_plugin.h"
 
+#include "resource_table_container.h"
 #include "resource_table_name.h"
 #include "resource_table_utils.h"
-#include "resource_table_container.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/display_server.hpp>
@@ -13,7 +13,6 @@
 #include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/file_access.hpp>
-#include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/file_system_dock.hpp>
 #include <godot_cpp/classes/grid_container.hpp>
 #include <godot_cpp/classes/h_box_container.hpp>
@@ -28,6 +27,7 @@
 #include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/classes/script.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
@@ -727,10 +727,11 @@ void ResourceTablesPlugin::_on_csv_file_selected(String p_path) {
 	pending_import_resource_paths = visible_paths;
 	import_confirm_dialog->set_text(
 			"Importing this CSV will:\n"
-			"  " + String::num_int64(adds) + " resource(s) added\n" +
+			"  " +
+			String::num_int64(adds) + " resource(s) added\n" +
 			"  " + String::num_int64(updates) + " resource(s) updated\n" +
 			"  " + String::num_int64(deletes) + " resource(s) deleted\n\n"
-			"This cannot be undone. Continue?");
+												"This cannot be undone. Continue?");
 	import_confirm_dialog->popup_centered();
 }
 

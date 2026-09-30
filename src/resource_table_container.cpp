@@ -7,8 +7,8 @@
 #include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/classes/input_event_key.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
-#include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
+#include <godot_cpp/classes/line_edit.hpp>
 #include <godot_cpp/classes/style_box_empty.hpp>
 #include <godot_cpp/classes/text_edit.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
@@ -795,4 +795,3 @@ void ResourceTableContainer::_gui_input(const Ref<InputEvent> &p_event) {
 	// input the way a body-row cell, e.g. a live EditorProperty, would).
 	_on_pan_input(p_event);
 }
-
