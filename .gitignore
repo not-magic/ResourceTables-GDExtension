@@ -5,9 +5,9 @@
 *.o
 
 # Built extension binaries
-project/addons/ResourceTables/bin/*.so
-project/addons/ResourceTables/bin/*.dylib
-project/addons/ResourceTables/bin/*.dll
+project/addons/resource_tables/bin/*.so
+project/addons/resource_tables/bin/*.dylib
+project/addons/resource_tables/bin/*.dll
 
 # Test binaries
 tests/bin/

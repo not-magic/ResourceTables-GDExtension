@@ -10,7 +10,7 @@ and editing `Resource` instances as spreadsheet-like tables.
 
 The panel has a single dropdown, labeled by a `FileList` editor icon (with 8px left/right margins), listing (alphabetically, case-insensitive)
 every resource class name with at least one instance found anywhere under `res://` (a live scan, not a
-generated cache), plus every project/plugin global class deriving from `Resource` even with no instances, excluding `ResourceTable` types themselves (see below) -- showing every resource
+generated cache), plus every project/plugin global class deriving from `Resource` even with no instances, plus every generator's `_resource_class_name` that resolves to a known class, excluding `ResourceTable` types themselves (see below) -- showing every resource
 of that type project-wide, including instances of classes that inherit from it (only the selected
 type's own properties become columns). Each item's metadata is just the class name; a selection is tracked
 across refreshes by item text. `ResourceTableGenerator` scripts are not listed in it at all -- they
@@ -25,15 +25,15 @@ A `ResourceTableGenerator` subclass (see below) has a single job: `_generate_out
 `_ready()`/`_process()` for a `Node`, which writes whatever the generator wants to disk, in whatever
 format it wants (the editor doesn't care). See `new_resource_table_generator_template.txt` below for
 the default implementation "New ResourceTable Generator..." stubs in -- it writes a
-`GenericResourceTable` (`project/addons/ResourceTables/GenericResourceTable.gd`, `extends
+`GenericResourceTable` (`project/addons/resource_tables/generic_resource_table.gd`, `extends
 ResourceTable`, adding a single `@export var items: Array`).
-`ResourceTable` itself (`src/resource_table.h`) is a thin native marker class, just `Resource`
+`ResourceTable` itself (`project/addons/resource_tables/resource_table.gd`) is a thin GDScript marker class, just `Resource`
 with no members -- its only job is letting
 `ResourceTableUtils::find_resource_type_names()` recognize and exclude its own
-instances (`resource->is_class("ResourceTable")`) from the dropdown, since a generator's own output
+subclasses (resolved through the global class list) from the dropdown, since a generator's own output
 table isn't itself a browsable resource type. Nothing in `src/` ever constructs or inspects a
 `GenericResourceTable`'s own `items` by name -- that property, and the whole
-generator/output-table split, lives entirely in `project/addons/ResourceTables/*.gd` and could be
+generator/output-table split, lives entirely in `project/addons/resource_tables/*.gd` and could be
 replaced with a different scheme (a different output class, ...) without touching the C++ side at all.
 
 The data area is a single `ResourceTableContainer` (`src/resource_table_container.{h,cpp}`), a general-purpose,
@@ -379,7 +379,7 @@ possibly through other project global classes in between, down to a real engine 
 `"ResourceTableGenerator"` itself, since that base has no native registration of its own to check
 via `ClassDB::is_parent_class` except as the final link in the chain).
 
-A `ResourceTableGenerator` subclass (`project/addons/ResourceTables/resource_table_generator.gd`,
+A `ResourceTableGenerator` subclass (`project/addons/resource_tables/resource_table_generator.gd`,
 `extends RefCounted`, `@abstract`) is deliberately not a `Resource` at all: it's a live object,
 freshly instantiated per discovered script whenever generators are run, never itself saved to a
 `.tres` file. Its contract is `_resource_class_name` (set by its own `_init(resource_class_name)`)
@@ -465,14 +465,14 @@ Notes:
   `flatpak run org.godotengine.Godot --doctool ../ --gdextension-docs` from `project/` (needs
   `project/project.godot` to load the extension into). `update_wiki` alone has no such
   dependency and just regenerates Markdown from whatever XML is already on disk.
-- The built shared library lands in `project/addons/ResourceTables/bin/`; opening
+- The built shared library lands in `project/addons/resource_tables/bin/`; opening
   `project/project.godot` in the Godot editor exercises the addon.
 
 ## Architecture
 
 - **`src/`** — the extension's C++ source. `register_types.cpp` is the entry point Godot calls
   (`resource_tables_library_init`, named in
-  `project/addons/ResourceTables/ResourceTables.gdextension`); it registers each `GDCLASS` at
+  `project/addons/resource_tables/resource_tables.gdextension`); it registers each `GDCLASS` at
   `MODULE_INITIALIZATION_LEVEL_SCENE` in `initialize_resource_tables_module`. New classes get
   added there.
 - **`doc_classes/*.xml`** is the source of truth for the addon's user-facing API docs, in Godot's
@@ -486,12 +486,12 @@ Notes:
   the script itself, then mirrors the output into the repo's GitHub wiki directly (not via a
   generic wiki-sync action, since `docs/` isn't committed to `main` for such an action to see).
 - **`project/`** is a minimal Godot project used to load and manually test the built addon
-  (`project/addons/ResourceTables/`), and as the load target for the `--doctool` docs build.
+  (`project/addons/resource_tables/`), and as the load target for the `--doctool` docs build.
 - **CI** (`.github/workflows/`): `build.yml` builds `template_debug` and runs `scons tests` on
   linux/windows/macos for every push/PR to `main`. `release.yml` (triggered by a `vX.X.X` tag or
   manual dispatch) builds `template_debug` + `template_release` on all three platforms, then
-  zips `project/addons/ResourceTables/` (binaries for every platform, `LICENSE` included, no
-  source) and attaches it to the GitHub Release — that zip's layout (`addons/ResourceTables/...`)
+  zips `project/addons/resource_tables/` (binaries for every platform, `LICENSE` included, no
+  source) and attaches it to the GitHub Release — that zip's layout (`addons/resource_tables/...`)
   is meant to be extracted straight into a consuming project's `res://`, and is also the intended
   "Custom" download URL for a Godot Asset Library submission.
 
@@ -499,7 +499,7 @@ Notes:
 
 The addon's name (`ResourceTables`) appears in several places that don't derive from each other
 automatically, so a future rename (or adding a second addon) needs to keep them in sync:
-`SConstruct`'s `ADDON_NAME`, the `project/addons/ResourceTables/` folder name, the
+`SConstruct`'s `ADDON_NAME`, the `project/addons/resource_tables/` folder name, the
 `*.gdextension` file (filename + its `entry_symbol`), `register_types.cpp`'s init/terminate
 function names and `extern "C"` entry symbol (must match the `.gdextension` file's
 `entry_symbol`), and the `resource-tables-bin-*` artifact name plus `ResourceTables.zip` in

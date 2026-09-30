@@ -1,9 +1,9 @@
 name: Release
 
 # Builds template_debug + template_release for linux/windows/macos, then
-# packages project/addons/ResourceTables/ (source-free, binaries for every
+# packages project/addons/resource_tables/ (source-free, binaries for every
 # platform included) into a zip attached to a GitHub Release. The zip's
-# internal layout is addons/ResourceTables/..., so it extracts directly
+# internal layout is addons/resource_tables/..., so it extracts directly
 # into a project's root (res://). That zip is what's meant to be
 # distributed -- either linked directly, or used as the "Custom" download
 # URL in a Godot Asset Library submission, since the Asset Library's
@@ -83,9 +83,9 @@ jobs:
         with:
           name: resource-tables-bin-${{ matrix.platform }}
           path: |
-            project/addons/ResourceTables/bin/*.so
-            project/addons/ResourceTables/bin/*.dll
-            project/addons/ResourceTables/bin/*.dylib
+            project/addons/resource_tables/bin/*.so
+            project/addons/resource_tables/bin/*.dll
+            project/addons/resource_tables/bin/*.dylib
 
   package:
     name: Package addon
@@ -100,14 +100,14 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: resource-tables-bin-*
-          path: project/addons/ResourceTables/bin
+          path: project/addons/resource_tables/bin
           merge-multiple: true
 
       - name: Zip addon
         run: |
-          cp LICENSE project/addons/ResourceTables/LICENSE
+          cp LICENSE project/addons/resource_tables/LICENSE
           cd project
-          zip -r "${{ github.workspace }}/ResourceTables.zip" addons/ResourceTables
+          zip -r "${{ github.workspace }}/ResourceTables.zip" addons/resource_tables
 
       - name: Create release
         uses: softprops/action-gh-release@v3

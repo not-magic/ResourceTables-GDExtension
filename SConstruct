@@ -6,6 +6,7 @@ import sys
 # https://scons.org/documentation.html
 
 ADDON_NAME = 'ResourceTables'
+ADDON_DIR = 'resource_tables'
 
 
 # This lets SCons know that we're using godot-cpp, from the godot-cpp folder.
@@ -85,7 +86,7 @@ lib_filename = "{}{}{}{}".format(env.subst('$SHLIBPREFIX'), ADDON_NAME, env["suf
 
 # Creates a SCons target for the path with our sources.
 library = env.SharedLibrary(
-    "project/addons/{}/bin/{}".format(ADDON_NAME, lib_filename),
+    "project/addons/{}/bin/{}".format(ADDON_DIR, lib_filename),
     source=sources,
 )
 

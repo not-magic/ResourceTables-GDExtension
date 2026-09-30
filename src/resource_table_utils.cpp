@@ -103,14 +103,10 @@ HashMap<StringName, StringName> calc_global_class_bases() {
 }
 
 // Object::is_class() only sees the native class chain, so a script-derived
-// ResourceTable (e.g. GenericResourceTable) has to be resolved through the
-// global class list instead.
+// ResourceTable has to be resolved through the global class list instead.
 bool is_resource_table(const Ref<Resource> &p_resource, const HashMap<StringName, StringName> &p_global_class_bases) {
 	const Ref<Script> script = p_resource->get_script();
-	if (script.is_valid()) {
-		return has_ancestor_in_chain(script->get_global_name(), "ResourceTable", p_global_class_bases);
-	}
-	return p_resource->is_class("ResourceTable");
+	return script.is_valid() && has_ancestor_in_chain(script->get_global_name(), "ResourceTable", p_global_class_bases);
 }
 
 void collect_resource_type_names_with_instances(const String &p_dir, const HashMap<StringName, StringName> &p_global_class_bases, HashSet<String> &r_results) {
@@ -382,8 +378,24 @@ PackedStringArray ResourceTableUtils::find_resource_type_names() {
 	for (const String &native_name : native_resources) {
 		const ClassDBSingleton::APIType api_type = class_db->class_get_api_type(native_name);
 		const bool is_extension_class = api_type == ClassDBSingleton::API_EXTENSION || api_type == ClassDBSingleton::API_EDITOR_EXTENSION;
-		if (is_extension_class && class_db->can_instantiate(native_name) && native_name != "ResourceTable" && !class_db->is_parent_class(native_name, "ResourceTable")) {
+		if (is_extension_class && class_db->can_instantiate(native_name)) {
 			names.insert(native_name);
+		}
+	}
+
+	const Array generator_scripts = find_generator_scripts();
+	for (int i = 0; i < generator_scripts.size(); i++) {
+		const Ref<Script> script = generator_scripts[i];
+		if (script.is_null() || !script->can_instantiate()) {
+			continue;
+		}
+		const Ref<RefCounted> generator = script->call("new");
+		if (generator.is_null()) {
+			continue;
+		}
+		const StringName generator_class_name = generator->get("_resource_class_name");
+		if (global_class_bases.has(generator_class_name) || class_db->class_exists(generator_class_name)) {
+			names.insert(String(generator_class_name));
 		}
 	}
 

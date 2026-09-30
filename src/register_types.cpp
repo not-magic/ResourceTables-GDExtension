@@ -1,6 +1,5 @@
 #include "register_types.h"
 
-#include "resource_table.h"
 #include "resource_table_container.h"
 #include "resource_table_export_plugin.h"
 #include "resource_table_name.h"
@@ -17,10 +16,6 @@ using namespace godot;
 // godot-cpp only defines TOOLS_ENABLED for target=editor, so editor-only registration
 // isn't macro-guarded; it relies on the EDITOR init level only being reached in an editor.
 void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		GDREGISTER_CLASS(ResourceTable);
-	}
-
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		GDREGISTER_INTERNAL_CLASS(ResourceTableName);
 		GDREGISTER_INTERNAL_CLASS(ResourceTableExportPlugin);

@@ -55,10 +55,10 @@ constexpr float HEADER_COLUMN_WIDTH = 200.0;
 constexpr int TYPE_ICON_MARGIN = 8;
 const char *const NEW_RESOURCE_DIR_KEY = "new_resource_directory";
 
-const char *EXPORT_RESOURCE_TABLES_SCRIPT_PATH = "res://addons/ResourceTables/export_resource_tables.gd";
+const char *EXPORT_RESOURCE_TABLES_SCRIPT_PATH = "res://addons/resource_tables/export_resource_tables.gd";
 
 const char *DEFAULT_NEW_GENERATOR_PATH = "res://NewTable.gd";
-const char *NEW_GENERATOR_TEMPLATE_PATH = "res://addons/ResourceTables/new_resource_table_generator_template.txt";
+const char *NEW_GENERATOR_TEMPLATE_PATH = "res://addons/resource_tables/new_resource_table_generator_template.txt";
 
 String column_property_name(const Array &p_properties, int p_column) {
 	if (p_column == 1) {

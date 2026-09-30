@@ -2,7 +2,7 @@
 
 [ext_resource type="Resource" uid="uid://dmuwceqaive3r" path="res://ResourceTables/AAAAs/AAAA_0.tres" id="1_0exj0"]
 [ext_resource type="Resource" uid="uid://dia82b25jnk8w" path="res://ResourceTables/AAA_1.tres" id="1_f6k25"]
-[ext_resource type="Script" uid="uid://ujdjn6ijlkef" path="res://addons/ResourceTables/GenericResourceTable.gd" id="1_p3emd"]
+[ext_resource type="Script" uid="uid://ujdjn6ijlkef" path="res://addons/resource_tables/generic_resource_table.gd" id="1_p3emd"]
 
 [resource]
 script = ExtResource("1_p3emd")
