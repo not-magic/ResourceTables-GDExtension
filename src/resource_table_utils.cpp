@@ -110,7 +110,7 @@ bool is_hidden_in_table_view(const Ref<Script> &p_script) {
 	return is_shown.get_type() == Variant::BOOL && !static_cast<bool>(is_shown);
 }
 
-void collect_resource_type_names_with_instances(const String &p_dir, const HashMap<StringName, StringName> &p_global_class_bases, HashSet<String> &r_results) {
+void collect_resource_type_names_with_instances(const String &p_dir, HashSet<String> &r_results) {
 	const Ref<DirAccess> dir = DirAccess::open(p_dir);
 	if (dir.is_null()) {
 		return;
@@ -121,7 +121,7 @@ void collect_resource_type_names_with_instances(const String &p_dir, const HashM
 		const String full_path = p_dir.path_join(entry);
 		if (dir->current_is_dir()) {
 			if (!entry.begins_with(".")) {
-				collect_resource_type_names_with_instances(full_path, p_global_class_bases, r_results);
+				collect_resource_type_names_with_instances(full_path, r_results);
 			}
 			continue;
 		}
@@ -366,7 +366,7 @@ Array ResourceTableUtils::find_resources_of_type(const StringName &p_class_name)
 PackedStringArray ResourceTableUtils::find_resource_type_names() {
 	HashSet<String> names;
 	const HashMap<StringName, StringName> global_class_bases = calc_global_class_bases();
-	collect_resource_type_names_with_instances("res://", global_class_bases, names);
+	collect_resource_type_names_with_instances("res://", names);
 
 	for (const KeyValue<StringName, StringName> &entry : global_class_bases) {
 		if (has_ancestor_in_chain(entry.value, "Resource", global_class_bases) && !is_hidden_in_table_view(find_script_for_class(entry.key))) {
