@@ -78,7 +78,7 @@ String column_property_name(const Array &p_properties, int p_column_index) {
 
 PackedStringArray find_visible_resource_paths(const Array &p_row_resources) {
 	PackedStringArray paths;
-	for (int i = 0; i < p_row_resources.size(); i++) {
+	for (int i = 0; i < p_row_resources.size(); ++i) {
 		const Ref<Resource> resource = p_row_resources[i];
 		if (resource.is_valid()) {
 			paths.push_back(resource->get_path());
@@ -122,7 +122,7 @@ void create_generator_script(const String &p_resource_class_name, const String &
 }
 
 String find_unused_resource_name(const String &p_dir, const String &p_class_name) {
-	for (int index = 0;; index++) {
+	for (int index = 0;; ++index) {
 		const String file_name = p_class_name + String("_") + String::num_int64(index) + String(".tres");
 		if (!FileAccess::file_exists(p_dir.path_join(file_name))) {
 			return file_name;
@@ -130,7 +130,8 @@ String find_unused_resource_name(const String &p_dir, const String &p_class_name
 	}
 }
 
-bool is_before_by_sort_column(Variant p_a, Variant p_b, int p_sort_column_index, const Array &p_properties, bool p_is_ascending) {
+// This is the sort function for the table view
+bool compare_column_property(Variant p_a, Variant p_b, int p_sort_column_index, const Array &p_properties, bool p_is_ascending) {
 	const Ref<Resource> a = p_a;
 	const Ref<Resource> b = p_b;
 	if (a.is_null() || b.is_null()) {
@@ -347,7 +348,7 @@ void ResourceTablesPlugin::_refresh_type_dropdown() {
 	}
 
 	std::vector<std::pair<String, Variant>> sorted_items;
-	for (int i = 0; i < type_dropdown->get_item_count(); i++) {
+	for (int i = 0; i < type_dropdown->get_item_count(); ++i) {
 		sorted_items.emplace_back(type_dropdown->get_item_text(i), type_dropdown->get_item_metadata(i));
 	}
 	std::stable_sort(sorted_items.begin(), sorted_items.end(), [](const auto &p_a, const auto &p_b) {
@@ -368,7 +369,7 @@ void ResourceTablesPlugin::_refresh_type_dropdown() {
 	}
 
 	int index_to_select = 0;
-	for (int i = 0; i < type_dropdown->get_item_count(); i++) {
+	for (int i = 0; i < type_dropdown->get_item_count(); ++i) {
 		if (type_dropdown->get_item_text(i) == previous_text) {
 			index_to_select = i;
 			break;
@@ -416,7 +417,7 @@ void ResourceTablesPlugin::_rebuild_table() {
 	table->set_column_sort_direction(1, sort_column_index == 0 ? (is_sort_ascending ? ResourceTableContainer::SORT_ASCENDING : ResourceTableContainer::SORT_DESCENDING) : ResourceTableContainer::SORT_NONE);
 	_apply_saved_column_width(1);
 
-	for (int i = 0; i < current_properties.size(); i++) {
+	for (int i = 0; i < current_properties.size(); ++i) {
 		const Dictionary info = current_properties[i];
 		// Approximates the Inspector's label capitalization (EditorPropertyNameProcessor isn't exposed).
 		const String title = String(info["name"]).capitalize();
@@ -428,12 +429,12 @@ void ResourceTablesPlugin::_rebuild_table() {
 	Array resources = ResourceTableUtils::find_resources_of_type(current_resource_class_name);
 
 	if (sort_column_index >= 0 && sort_column_index <= current_properties.size()) {
-		resources.sort_custom(callable_mp_static(&is_before_by_sort_column).bind(sort_column_index, current_properties, is_sort_ascending));
+		resources.sort_custom(callable_mp_static(&compare_column_property).bind(sort_column_index, current_properties, is_sort_ascending));
 	}
 
 	const Control *const editor_base = EditorInterface::get_singleton()->get_base_control();
 
-	for (int i = 0; i < resources.size(); i++) {
+	for (int i = 0; i < resources.size(); ++i) {
 		const Ref<Resource> resource = resources[i];
 		if (resource.is_null()) {
 			continue;
@@ -460,7 +461,7 @@ void ResourceTablesPlugin::_rebuild_table() {
 		name_cell->connect("delete_requested", callable_mp(this, &ResourceTablesPlugin::_on_delete_requested));
 		table->set_cell(row, 1, name_cell);
 
-		for (int j = 0; j < current_properties.size(); j++) {
+		for (int j = 0; j < current_properties.size(); ++j) {
 			const Dictionary info = current_properties[j];
 			const StringName property_name = info["name"];
 			const Variant::Type type = (Variant::Type)(int64_t)info["type"];
@@ -802,6 +803,7 @@ void ResourceTablesPlugin::_run_export_tables(const String &p_modified_resource_
 	if (is_generating) {
 		return;
 	}
+
 	const Ref<Script> script = ResourceLoader::get_singleton()->load(EXPORT_RESOURCE_TABLES_SCRIPT_PATH);
 	if (script.is_null()) {
 		return;
@@ -820,7 +822,7 @@ void ResourceTablesPlugin::_sync_generators(bool p_should_generate) {
 
 	PackedStringArray modified_classes;
 	const Array scripts = ResourceTableUtils::find_generator_scripts();
-	for (int i = 0; i < scripts.size(); i++) {
+	for (int i = 0; i < scripts.size(); ++i) {
 		const Ref<Script> script = scripts[i];
 		if (script.is_null() || !script->can_instantiate()) {
 			continue;
@@ -833,7 +835,7 @@ void ResourceTablesPlugin::_sync_generators(bool p_should_generate) {
 		const String class_name = generator->get("_resource_class_name");
 		Dictionary snapshot;
 		const Array resources = ResourceTableUtils::find_resources_of_type(class_name);
-		for (int j = 0; j < resources.size(); j++) {
+		for (int j = 0; j < resources.size(); ++j) {
 			const String path = Ref<Resource>(resources[j])->get_path();
 			snapshot[path] = (int64_t)FileAccess::get_modified_time(path);
 		}
@@ -864,13 +866,15 @@ void ResourceTablesPlugin::_check_dirty_resources_saved() {
 	if (dirty_resource_mtimes.is_empty()) {
 		return;
 	}
+
 	PackedStringArray saved_paths;
 	for (const KeyValue<String, uint64_t> &entry : dirty_resource_mtimes) {
 		if (FileAccess::get_modified_time(entry.key) != entry.value) {
 			saved_paths.push_back(entry.key);
 		}
 	}
-	for (int i = 0; i < saved_paths.size(); i++) {
+
+	for (int i = 0; i < saved_paths.size(); ++i) {
 		dirty_resource_mtimes.erase(saved_paths[i]);
 	}
 }
@@ -883,7 +887,7 @@ void ResourceTablesPlugin::_on_revert_button_pressed(Ref<Resource> p_resource) {
 	// a since-edited value in place. Load an independent copy and copy every displayed property across.
 	const Ref<Resource> fresh = ResourceLoader::get_singleton()->load(path, "", ResourceLoader::CACHE_MODE_IGNORE);
 	if (fresh.is_valid()) {
-		for (int i = 0; i < current_properties.size(); i++) {
+		for (int i = 0; i < current_properties.size(); ++i) {
 			const Dictionary info = current_properties[i];
 			const StringName property_name = info["name"];
 			p_resource->set(property_name, fresh->get(property_name));

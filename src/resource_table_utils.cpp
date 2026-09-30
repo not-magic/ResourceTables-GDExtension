@@ -29,7 +29,7 @@ namespace {
 
 Ref<Script> find_script_for_class(const StringName &p_class_name) {
 	const TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-	for (int i = 0; i < global_classes.size(); i++) {
+	for (int i = 0; i < global_classes.size(); ++i) {
 		const Dictionary entry = global_classes[i];
 		if (StringName(entry["class"]) == p_class_name) {
 			return ResourceLoader::get_singleton()->load(entry["path"]);
@@ -39,7 +39,7 @@ Ref<Script> find_script_for_class(const StringName &p_class_name) {
 }
 
 bool has_ancestor_in_chain(StringName p_base, const StringName &p_target, const HashMap<StringName, StringName> &p_global_class_bases) {
-	for (int i = 0; i < 32 && p_base != StringName(); i++) {
+	for (int i = 0; i < 32 && p_base != StringName(); ++i) {
 		if (p_base == p_target) {
 			return true;
 		}
@@ -96,7 +96,7 @@ void collect_resources_of_class(const String &p_dir, const StringName &p_class_n
 HashMap<StringName, StringName> calc_global_class_bases() {
 	HashMap<StringName, StringName> bases;
 	const TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
-	for (int i = 0; i < global_classes.size(); i++) {
+	for (int i = 0; i < global_classes.size(); ++i) {
 		const Dictionary entry = global_classes[i];
 		bases[StringName(entry["class"])] = StringName(entry["base"]);
 	}
@@ -175,7 +175,7 @@ ResourceClassInfo resolve_resource_class_by_name(const StringName &p_class_name)
 		return info;
 	}
 
-	for (int i = 0; i < all_properties.size(); i++) {
+	for (int i = 0; i < all_properties.size(); ++i) {
 		if (is_editable_property(all_properties[i])) {
 			info.properties.push_back(all_properties[i]);
 		}
@@ -239,7 +239,7 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 	const Array properties = class_info.properties;
 
 	HashMap<StringName, Variant::Type> property_types;
-	for (int i = 0; i < properties.size(); i++) {
+	for (int i = 0; i < properties.size(); ++i) {
 		const Dictionary info = properties[i];
 		property_types[StringName(String(info["name"]))] = (Variant::Type)(int64_t)info["type"];
 	}
@@ -298,7 +298,7 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 				continue;
 			}
 
-			for (size_t column_index = 1; column_index < header.size() && column_index < row.size(); column_index++) {
+			for (size_t column_index = 1; column_index < header.size() && column_index < row.size(); ++column_index) {
 				const StringName property_name = String::utf8(header[column_index].c_str());
 				const HashMap<StringName, Variant::Type>::ConstIterator type_it = property_types.find(property_name);
 				if (type_it == property_types.end()) {
@@ -320,7 +320,7 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 	}
 
 	int delete_total = 0;
-	for (int i = 0; i < p_resource_paths.size(); i++) {
+	for (int i = 0; i < p_resource_paths.size(); ++i) {
 		const String existing_path = p_resource_paths[i];
 		if (existing_path.is_empty() || seen_paths.has(existing_path)) {
 			continue;
@@ -386,7 +386,7 @@ PackedStringArray ResourceTableUtils::find_resource_type_names() {
 	}
 
 	const Array generator_scripts = find_generator_scripts();
-	for (int i = 0; i < generator_scripts.size(); i++) {
+	for (int i = 0; i < generator_scripts.size(); ++i) {
 		const Ref<Script> script = generator_scripts[i];
 		if (script.is_null() || !script->can_instantiate()) {
 			continue;
@@ -413,14 +413,14 @@ Array ResourceTableUtils::find_generator_scripts() {
 	const TypedArray<Dictionary> global_classes = ProjectSettings::get_singleton()->get_global_class_list();
 
 	HashMap<StringName, StringName> global_class_bases;
-	for (int i = 0; i < global_classes.size(); i++) {
+	for (int i = 0; i < global_classes.size(); ++i) {
 		const Dictionary entry = global_classes[i];
 		global_class_bases[StringName(entry["class"])] = StringName(entry["base"]);
 	}
 
 	Array scripts;
 	HashSet<String> seen_names;
-	for (int i = 0; i < global_classes.size(); i++) {
+	for (int i = 0; i < global_classes.size(); ++i) {
 		const Dictionary entry = global_classes[i];
 		const StringName class_name = entry["class"];
 		if (seen_names.has(class_name) || !has_ancestor_in_chain(entry["base"], "ResourceTableGenerator", global_class_bases)) {
@@ -477,7 +477,7 @@ Error ResourceTableUtils::export_csv(const StringName &p_resource_class_name, co
 	const Array properties = class_info.properties;
 
 	Array resources;
-	for (int i = 0; i < p_resource_paths.size(); i++) {
+	for (int i = 0; i < p_resource_paths.size(); ++i) {
 		const Ref<Resource> resource = ResourceLoader::get_singleton()->load(p_resource_paths[i]);
 		if (resource.is_valid()) {
 			resources.push_back(resource);
@@ -493,20 +493,20 @@ Error ResourceTableUtils::export_csv(const StringName &p_resource_class_name, co
 
 	std::vector<std::string> header;
 	header.push_back("Path");
-	for (int i = 0; i < properties.size(); i++) {
+	for (int i = 0; i < properties.size(); ++i) {
 		const Dictionary info = properties[i];
 		header.push_back(std::string(String(info["name"]).utf8().get_data()));
 	}
 	writer << header;
 
-	for (int i = 0; i < resources.size(); i++) {
+	for (int i = 0; i < resources.size(); ++i) {
 		const Ref<Resource> resource = resources[i];
 		if (resource.is_null()) {
 			continue;
 		}
 		std::vector<std::string> fields;
 		fields.push_back(std::string(resource->get_path().utf8().get_data()));
-		for (int j = 0; j < properties.size(); j++) {
+		for (int j = 0; j < properties.size(); ++j) {
 			const Dictionary info = properties[j];
 			const StringName property_name = info["name"];
 			fields.push_back(std::string(resource->get(property_name).stringify().utf8().get_data()));

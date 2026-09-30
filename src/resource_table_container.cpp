@@ -17,7 +17,6 @@
 #include <godot_cpp/classes/v_scroll_bar.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/core/print_string.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
 #include <godot_cpp/variant/rect2.hpp>
 
@@ -63,14 +62,14 @@ float calc_cell_custom_max_width(Control *p_cell) {
 
 void recompute_column_x(std::vector<ResourceTableContainer::Column> &r_columns, int p_border_x) {
 	int x = 0;
-	for (size_t i = 0; i < r_columns.size(); i++) {
+	for (size_t i = 0; i < r_columns.size(); ++i) {
 		r_columns[i].x = x;
 		x += r_columns[i].width + p_border_x;
 	}
 }
 
 int separator_at_x(const std::vector<ResourceTableContainer::Column> &p_columns, int p_border_x, int p_x) {
-	for (int i = 0; i < (int)p_columns.size(); i++) {
+	for (int i = 0; i < (int)p_columns.size(); ++i) {
 		if (!p_columns[i].is_resizable) {
 			continue;
 		}
@@ -83,7 +82,7 @@ int separator_at_x(const std::vector<ResourceTableContainer::Column> &p_columns,
 }
 
 int column_at_x(const std::vector<ResourceTableContainer::Column> &p_columns, int p_x) {
-	for (int i = 0; i < (int)p_columns.size(); i++) {
+	for (int i = 0; i < (int)p_columns.size(); ++i) {
 		if (p_x >= p_columns[i].x && p_x < p_columns[i].x + p_columns[i].width) {
 			return i;
 		}
@@ -100,7 +99,7 @@ int row_at_global_position(const std::vector<ResourceTableContainer::RowData> &p
 		return -1;
 	}
 	const int y = (int)(p_pos.y - p_body_clip->get_global_position().y) + p_v_offset;
-	for (size_t row_index = 0; row_index < p_rows.size(); row_index++) {
+	for (size_t row_index = 0; row_index < p_rows.size(); ++row_index) {
 		if (y >= p_rows[row_index].y && y < p_rows[row_index].y + p_rows[row_index].height) {
 			return (int)row_index;
 		}
@@ -165,8 +164,6 @@ ResourceTableContainer::ResourceTableContainer() {
 
 	const EditorInterface *const editor_interface = EditorInterface::get_singleton();
 
-	print_line(vformat("ResourceTableContainer::ResourceTableContainer: this:%X, editor_interface: %X", uint64_t(this), uint64_t(editor_interface)));
-
 	if (editor_interface) {
 		const Ref<Theme> editor_theme = editor_interface->get_editor_theme();
 		if (editor_theme.is_valid()) {
@@ -180,8 +177,6 @@ ResourceTableContainer::ResourceTableContainer() {
 		const int corner_radius_setting = editor_settings->get_setting("interface/theme/corner_radius");
 		corner_radius = (int)std::round(corner_radius_setting * editor_interface->get_editor_scale());
 	}
-
-	print_line("EditorInterface finished!");
 
 	body_background_style.instantiate();
 	body_background_style->set_bg_color(body_bg_color);
@@ -250,7 +245,7 @@ void ResourceTableContainer::set_columns(int p_column_total, const std::vector<f
 
 	const int old_size = (int)columns.size();
 	columns.resize(p_column_total);
-	for (int i = old_size; i < p_column_total; i++) {
+	for (int i = old_size; i < p_column_total; ++i) {
 		const float default_width = p_default_widths.empty() ? 100.0f : p_default_widths[MIN((size_t)i, p_default_widths.size() - 1)];
 		columns[i].width = MAX(MIN_COLUMN_WIDTH, (int)std::round(default_width));
 	}
@@ -320,7 +315,7 @@ void ResourceTableContainer::_resort() {
 	header_height = MAX(DEFAULT_HEADER_HEIGHT, calc_preferred_header_height(this));
 	const int column_count = (int)columns.size();
 
-	for (int i = 0; i < column_count; i++) {
+	for (int i = 0; i < column_count; ++i) {
 		int cell_min = 0;
 		float cell_max = -1.0f; // -1 == uncapped
 		float natural_width = 0.0f;
@@ -367,7 +362,7 @@ void ResourceTableContainer::_resort() {
 
 	const int margin_y = top_margin + bottom_margin;
 	int y = 0;
-	for (size_t row_index = 0; row_index < rows.size(); row_index++) {
+	for (size_t row_index = 0; row_index < rows.size(); ++row_index) {
 		int content_h = 0;
 		for (const Control *cell : rows[row_index].cells) {
 			if (cell) {
@@ -400,10 +395,10 @@ void ResourceTableContainer::_resort() {
 	scroll_hint_overlay->set_position(Vector2(0, 0));
 	scroll_hint_overlay->set_size(Vector2(body_width, body_height));
 
-	for (size_t row_index = 0; row_index < rows.size(); row_index++) {
+	for (size_t row_index = 0; row_index < rows.size(); ++row_index) {
 		const int row_y = rows[row_index].y;
 		const int row_h = rows[row_index].height;
-		for (int column_index = 0; column_index < column_count; column_index++) {
+		for (int column_index = 0; column_index < column_count; ++column_index) {
 			Control *const cell = rows[row_index].cells[column_index];
 			if (!cell) {
 				continue;
@@ -436,7 +431,7 @@ void ResourceTableContainer::_update_hover() {
 	if (!(has_content_scrolled && !has_mouse_moved) && !rows.empty()) {
 		if (Rect2(Vector2(), body_clip->get_size()).has_point(local)) {
 			const int y = (int)local.y + cached_v_offset;
-			for (size_t row_index = 0; row_index < rows.size(); row_index++) {
+			for (size_t row_index = 0; row_index < rows.size(); ++row_index) {
 				if (y >= rows[row_index].y && y < rows[row_index].y + rows[row_index].height) {
 					new_hover_index = (int)row_index;
 					break;
@@ -484,7 +479,7 @@ void ResourceTableContainer::_draw() {
 void ResourceTableContainer::_on_header_draw() {
 	const int header_clip_height = (int)header_clip->get_size().y;
 
-	for (int i = 0; i < (int)columns.size(); i++) {
+	for (int i = 0; i < (int)columns.size(); ++i) {
 		const int x = columns[i].x - cached_h_offset;
 		_draw_header_column(i, x, columns[i].width, header_clip_height);
 
@@ -554,12 +549,12 @@ void ResourceTableContainer::_on_body_draw() {
 		}
 	}
 
-	for (int i = 0; i < (int)columns.size(); i++) {
+	for (int i = 0; i < (int)columns.size(); ++i) {
 		const int gap_x = columns[i].x + columns[i].width - cached_h_offset;
 		body_clip->draw_rect(Rect2(Vector2(gap_x, 0), Vector2(border_x, bg_height)), grid_line_color);
 	}
 	const int row_line_width = MAX(0, bg_width - GRID_LINE_MARGIN * 2);
-	for (size_t row_index = 0; row_index < rows.size(); row_index++) {
+	for (size_t row_index = 0; row_index < rows.size(); ++row_index) {
 		const int gap_y = rows[row_index].y + rows[row_index].height - cached_v_offset;
 		body_clip->draw_rect(Rect2(Vector2(-cached_h_offset + GRID_LINE_MARGIN, gap_y), Vector2(row_line_width, border_y)), grid_line_color);
 	}
@@ -706,7 +701,7 @@ void ResourceTableContainer::_input(const Ref<InputEvent> &p_event) {
 			}
 		} else if (click->is_shift_pressed() && selection_anchor_index >= 0) {
 			selection.clear();
-			for (int range_row_index = MIN(selection_anchor_index, clicked_row_index); range_row_index <= MAX(selection_anchor_index, clicked_row_index); range_row_index++) {
+			for (int range_row_index = MIN(selection_anchor_index, clicked_row_index); range_row_index <= MAX(selection_anchor_index, clicked_row_index); ++range_row_index) {
 				selection.insert(range_row_index);
 			}
 		} else if (click->is_ctrl_pressed()) {
