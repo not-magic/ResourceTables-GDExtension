@@ -18,6 +18,7 @@
 #include <godot_cpp/classes/h_box_container.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/label.hpp>
+#include <godot_cpp/classes/margin_container.hpp>
 #include <godot_cpp/classes/menu_bar.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
 #include <godot_cpp/classes/popup_panel.hpp>
@@ -51,6 +52,8 @@ enum ToolsMenuId {
 // (see _on_sort_header_pressed).
 
 constexpr float HEADER_COLUMN_WIDTH = 200.0;
+constexpr int TYPE_ICON_MARGIN = 8;
+const char *const NEW_RESOURCE_DIR_KEY = "new_resource_directory";
 
 const char *EXPORT_RESOURCE_TABLES_SCRIPT_PATH = "res://addons/ResourceTables/export_resource_tables.gd";
 
@@ -113,6 +116,15 @@ void create_generator_script(const String &p_resource_class_name, const String &
 	}
 }
 
+String find_unused_resource_name(const String &p_dir, const String &p_class_name) {
+	for (int index = 0;; index++) {
+		const String file_name = p_class_name + String("_") + String::num_int64(index) + String(".tres");
+		if (!FileAccess::file_exists(p_dir.path_join(file_name))) {
+			return file_name;
+		}
+	}
+}
+
 bool is_before_by_sort_column(Variant p_a, Variant p_b, int p_sort_column, const Array &p_properties, bool p_is_ascending) {
 	const Ref<Resource> a = p_a;
 	const Ref<Resource> b = p_b;
@@ -161,11 +173,16 @@ void ResourceTablesPlugin::_enter_tree() {
 	HBoxContainer *const top_row = memnew(HBoxContainer);
 	main_panel->add_child(top_row);
 
+	MarginContainer *const type_icon_margin = memnew(MarginContainer);
+	type_icon_margin->add_theme_constant_override("margin_left", TYPE_ICON_MARGIN);
+	type_icon_margin->add_theme_constant_override("margin_right", TYPE_ICON_MARGIN);
+	top_row->add_child(type_icon_margin);
+
 	TextureRect *const type_icon = memnew(TextureRect);
-	type_icon->set_texture(editor_base->get_theme_icon("Object", "EditorIcons"));
+	type_icon->set_texture(editor_base->get_theme_icon("FileList", "EditorIcons"));
 	type_icon->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
 	type_icon->set_tooltip_text("Source");
-	top_row->add_child(type_icon);
+	type_icon_margin->add_child(type_icon);
 
 	type_dropdown = memnew(OptionButton);
 	type_dropdown->connect("item_selected", callable_mp(this, &ResourceTablesPlugin::_on_type_selected));
@@ -186,7 +203,7 @@ void ResourceTablesPlugin::_enter_tree() {
 	tools_menu = memnew(PopupMenu);
 	tools_menu->set_name("Tools");
 	tools_menu->add_icon_item(editor_base->get_theme_icon("ScriptCreate", "EditorIcons"), "New ResourceTable Generator...", TOOLS_MENU_NEW_GENERATOR);
-	tools_menu->add_icon_item(editor_base->get_theme_icon("Play", "EditorIcons"), "Generate ResourceTables", TOOLS_MENU_GENERATE_ALL);
+	tools_menu->add_icon_item(editor_base->get_theme_icon("Play", "EditorIcons"), "Run Generators (For Debugging)", TOOLS_MENU_GENERATE_ALL);
 	tools_menu->add_separator();
 	tools_menu->add_icon_item(editor_base->get_theme_icon("Save", "EditorIcons"), "Export to CSV...", TOOLS_MENU_EXPORT_CSV);
 	tools_menu->add_icon_item(editor_base->get_theme_icon("Load", "EditorIcons"), "Import from CSV...", TOOLS_MENU_IMPORT_CSV);
@@ -745,7 +762,11 @@ void ResourceTablesPlugin::_on_new_resource_button_pressed() {
 		return;
 	}
 
-	new_resource_file_dialog->set_current_file(String(current_resource_class_name) + ".tres");
+	const String saved_dir = EditorInterface::get_singleton()->get_editor_settings()->get_project_metadata(current_resource_class_name, NEW_RESOURCE_DIR_KEY, String());
+	if (!saved_dir.is_empty()) {
+		new_resource_file_dialog->set_current_dir(saved_dir);
+	}
+	new_resource_file_dialog->set_current_file(find_unused_resource_name(new_resource_file_dialog->get_current_dir(), current_resource_class_name));
 	new_resource_file_dialog->popup_centered_ratio(0.5);
 }
 
@@ -753,6 +774,8 @@ void ResourceTablesPlugin::_on_new_resource_path_selected(String p_path) {
 	if (current_resource_class_name == StringName()) {
 		return;
 	}
+
+	EditorInterface::get_singleton()->get_editor_settings()->set_project_metadata(current_resource_class_name, NEW_RESOURCE_DIR_KEY, p_path.get_base_dir());
 
 	const Ref<Resource> resource = ResourceTableUtils::instantiate_resource_of_type(current_resource_class_name);
 	if (resource.is_null()) {

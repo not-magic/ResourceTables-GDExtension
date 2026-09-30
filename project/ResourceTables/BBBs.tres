@@ -1,0 +1,9 @@
+[gd_resource type="ResourceTable" script_class="GenericResourceTable" format=3 uid="uid://di6owv1d4ksgi"]
+
+[ext_resource type="Resource" uid="uid://bmqsr7mjppclf" path="res://ResourceTables/BBBs/BBB_0.tres" id="1_281vy"]
+[ext_resource type="Resource" uid="uid://blso2t70pqf0d" path="res://ResourceTables/BBBs/BBB_1.tres" id="2_k7jgt"]
+[ext_resource type="Script" uid="uid://ujdjn6ijlkef" path="res://addons/ResourceTables/GenericResourceTable.gd" id="3_dstft"]
+
+[resource]
+script = ExtResource("3_dstft")
+items = [ExtResource("1_281vy"), ExtResource("2_k7jgt")]

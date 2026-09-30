@@ -22,23 +22,15 @@ public:
 
 	static Array find_generator_scripts();
 
-	// p_prefix plus the smallest unused N among instances' "p_prefix_N" basenames (AAA_0/1/3 -> "AAA_2").
-	static String find_safe_name(const StringName &p_resource_class_name, const String &p_prefix);
-
-	// Instantiates p_class_name, saves it at p_path (creating parent
-	// directories first), and returns it. Null if p_class_name isn't
-	// instantiable or the save fails.
-	static Ref<Resource> create_instance(const StringName &p_class_name, const String &p_path);
-
 	// p_class_name's exported/editor-usage properties. Empty if p_class_name
 	// can't be resolved.
 	static Array find_properties_of_type(const StringName &p_class_name);
 
 	// Loads what's at p_path, else instantiates p_class_name with that path (creating parent dirs). Doesn't save.
-	static Ref<Resource> find_or_create(const StringName &p_class_name, const String &p_path);
+	static Ref<Resource> find_or_create_resource(const StringName &p_class_name, const String &p_path);
 
 	// A fresh, unsaved instance of p_class_name, or null if it doesn't
-	// resolve. Unlike find_or_create, never touches disk or sets a
+	// resolve. Unlike find_or_create_resource, never touches disk or sets a
 	// resource_path.
 	static Ref<Resource> instantiate_resource_of_type(const StringName &p_class_name);
 

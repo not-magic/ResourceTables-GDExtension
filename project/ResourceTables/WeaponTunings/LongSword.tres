@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WeaponTuning" format=3 uid="uid://dr1lk15ua3l81"]
+
+[ext_resource type="Script" uid="uid://15q0sd3w8xbi" path="res://ResourceTypes/WeaponTuning.gd" id="1_tdyef"]
+
+[resource]
+script = ExtResource("1_tdyef")
+two_handed = true
+physical_dmg = 45
+crit_boost = 2
+armor_bonus = 15

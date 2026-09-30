@@ -17,6 +17,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
 #include <godot_cpp/variant/rect2.hpp>
+#include <godot_cpp/core/print_string.hpp>
 
 #include <cmath>
 
@@ -161,17 +162,25 @@ ResourceTableContainer::ResourceTableContainer() {
 	int corner_radius = 6;
 
 	const EditorInterface *const editor_interface = EditorInterface::get_singleton();
+
+	print_line(vformat("ResourceTableContainer::ResourceTableContainer: this:%X, editor_interface: %X", uint64_t(this), uint64_t(editor_interface)));
+
 	if (editor_interface) {
 		const Ref<Theme> editor_theme = editor_interface->get_editor_theme();
-		body_bg_color = editor_theme->get_color("dark_color_2", "Editor").lerp(editor_theme->get_color("dark_color_3", "Editor"), 0.5);
-		header_color = editor_theme->get_color("base_color", "Editor");
-		grid_line_color = editor_theme->get_color("separator_color", "Editor");
-		resize_handle_hover_color = editor_theme->get_color("highlight_color", "Editor");
+		if (editor_theme.is_valid()) {
+			body_bg_color = editor_theme->get_color("dark_color_2", "Editor").lerp(editor_theme->get_color("dark_color_3", "Editor"), 0.5);
+			header_color = editor_theme->get_color("base_color", "Editor");
+			grid_line_color = editor_theme->get_color("separator_color", "Editor");
+			resize_handle_hover_color = editor_theme->get_color("highlight_color", "Editor");			
+		}
 
 		const Ref<EditorSettings> editor_settings = editor_interface->get_editor_settings();
 		const int corner_radius_setting = editor_settings->get_setting("interface/theme/corner_radius");
 		corner_radius = (int)std::round(corner_radius_setting * editor_interface->get_editor_scale());
 	}
+
+	print_line("EditorInterface finished!");
+
 	body_background_style.instantiate();
 	body_background_style->set_bg_color(body_bg_color);
 	body_background_style->set_corner_radius(CORNER_BOTTOM_LEFT, corner_radius);

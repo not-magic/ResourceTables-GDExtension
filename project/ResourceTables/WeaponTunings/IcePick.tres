@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WeaponTuning" format=3 uid="uid://cq8h45ohfox64"]
+
+[ext_resource type="Script" uid="uid://15q0sd3w8xbi" path="res://ResourceTypes/WeaponTuning.gd" id="1_kheni"]
+
+[resource]
+script = ExtResource("1_kheni")
+rarity = 1
+physical_dmg = 10
+ice_dmg = 10

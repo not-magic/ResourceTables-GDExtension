@@ -25,7 +25,7 @@ static func export_tables(modified_resource:String = '') -> void:
 	EditorInterface.get_resource_filesystem().scan()
 
 	# _generate_outputs() edits an existing resource in place (via
-	# ResourceTableUtils.find_or_create) -- if the Inspector currently has
+	# ResourceTableUtils.find_or_create_resource) -- if the Inspector currently has
 	# that same resource open, it doesn't notice the change on its own, so
 	# nudge it to redraw.
 	if did_something:

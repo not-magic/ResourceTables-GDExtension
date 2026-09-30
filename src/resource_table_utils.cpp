@@ -59,7 +59,7 @@ StringName resource_type_name(const Ref<Resource> &p_resource) {
 	return StringName(p_resource->get_class());
 }
 
-void collect_resources_of_class(const String &p_dir, const StringName &p_class_name, Array &r_results) {
+void collect_resources_of_class(const String &p_dir, const StringName &p_class_name, const HashMap<StringName, StringName> &p_global_class_bases, Array &r_results) {
 	const Ref<DirAccess> dir = DirAccess::open(p_dir);
 	if (dir.is_null()) {
 		return;
@@ -70,7 +70,7 @@ void collect_resources_of_class(const String &p_dir, const StringName &p_class_n
 		const String full_path = p_dir.path_join(entry);
 		if (dir->current_is_dir()) {
 			if (!entry.begins_with(".")) {
-				collect_resources_of_class(full_path, p_class_name, r_results);
+				collect_resources_of_class(full_path, p_class_name, p_global_class_bases, r_results);
 			}
 			continue;
 		}
@@ -85,7 +85,7 @@ void collect_resources_of_class(const String &p_dir, const StringName &p_class_n
 			continue;
 		}
 
-		if (resource_type_name(resource) == p_class_name) {
+		if (has_ancestor_in_chain(resource_type_name(resource), p_class_name, p_global_class_bases)) {
 			r_results.push_back(resource);
 		}
 	}
@@ -354,20 +354,15 @@ ResourceTableUtils::ImportPreview run_csv_import(const StringName &p_resource_cl
 
 void ResourceTableUtils::_bind_methods() {
 	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_resources_of_type", "class_name"), &ResourceTableUtils::find_resources_of_type);
-	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_resource_type_names"), &ResourceTableUtils::find_resource_type_names);
 	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_generator_scripts"), &ResourceTableUtils::find_generator_scripts);
-	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_safe_name", "resource_class_name", "prefix"), &ResourceTableUtils::find_safe_name);
-	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("create_instance", "class_name", "path"), &ResourceTableUtils::create_instance);
-	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_properties_of_type", "class_name"), &ResourceTableUtils::find_properties_of_type);
-	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_or_create", "class_name", "path"), &ResourceTableUtils::find_or_create);
-	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("instantiate_resource_of_type", "class_name"), &ResourceTableUtils::instantiate_resource_of_type);
+	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("find_or_create_resource", "class_name", "path"), &ResourceTableUtils::find_or_create_resource);
 	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("export_csv", "resource_class_name", "resource_paths", "path"), &ResourceTableUtils::export_csv);
 	ClassDB::bind_static_method("ResourceTableUtils", D_METHOD("import_csv", "resource_class_name", "resource_paths", "path"), &ResourceTableUtils::import_csv);
 }
 
 Array ResourceTableUtils::find_resources_of_type(const StringName &p_class_name) {
 	Array results;
-	collect_resources_of_class("res://", p_class_name, results);
+	collect_resources_of_class("res://", p_class_name, calc_global_class_bases(), results);
 	return results;
 }
 
@@ -428,58 +423,11 @@ Array ResourceTableUtils::find_generator_scripts() {
 	return scripts;
 }
 
-String ResourceTableUtils::find_safe_name(const StringName &p_resource_class_name, const String &p_prefix) {
-	Array existing;
-	collect_resources_of_class("res://", p_resource_class_name, existing);
-
-	const String match_prefix = p_prefix + String("_");
-	HashSet<int> used_indices;
-	for (int i = 0; i < existing.size(); i++) {
-		const Ref<Resource> resource = existing[i];
-		if (resource.is_null()) {
-			continue;
-		}
-		const String basename = resource->get_path().get_file().get_basename();
-		if (!basename.begins_with(match_prefix)) {
-			continue;
-		}
-		const String suffix = basename.substr(match_prefix.length());
-		if (suffix.is_valid_int()) {
-			used_indices.insert(suffix.to_int());
-		}
-	}
-
-	int index = 0;
-	while (used_indices.has(index)) {
-		index++;
-	}
-	return match_prefix + String::num_int64(index);
-}
-
-Ref<Resource> ResourceTableUtils::create_instance(const StringName &p_class_name, const String &p_path) {
-	const Ref<Resource> instance = instantiate_typed_resource(p_class_name);
-	if (instance.is_null()) {
-		return instance;
-	}
-
-	const String dir = p_path.get_base_dir();
-	if (!dir.is_empty() && !DirAccess::dir_exists_absolute(dir)) {
-		DirAccess::make_dir_recursive_absolute(dir);
-	}
-
-	const Error save_err = ResourceSaver::get_singleton()->save(instance, p_path);
-	if (save_err != OK) {
-		UtilityFunctions::push_error("ResourceTableUtils: failed to save '", p_path, "' (error ", (int64_t)save_err, ").");
-		return Ref<Resource>();
-	}
-	return instance;
-}
-
 Array ResourceTableUtils::find_properties_of_type(const StringName &p_class_name) {
 	return resolve_resource_class_by_name(p_class_name).properties;
 }
 
-Ref<Resource> ResourceTableUtils::find_or_create(const StringName &p_class_name, const String &p_path) {
+Ref<Resource> ResourceTableUtils::find_or_create_resource(const StringName &p_class_name, const String &p_path) {
 	ResourceLoader *const loader = ResourceLoader::get_singleton();
 	if (loader->exists(p_path)) {
 		const Ref<Resource> existing = loader->load(p_path);

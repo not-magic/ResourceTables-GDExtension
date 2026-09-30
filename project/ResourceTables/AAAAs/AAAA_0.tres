@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="AAAA" format=3 uid="uid://dmuwceqaive3r"]
+
+[ext_resource type="Script" uid="uid://civsov1meaehw" path="res://ResourceTypes/AAAA.gd" id="1_ry5t0"]
+
+[resource]
+script = ExtResource("1_ry5t0")
+int_val = 50

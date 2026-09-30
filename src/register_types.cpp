@@ -19,14 +19,14 @@ using namespace godot;
 void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		GDREGISTER_CLASS(ResourceTable);
-		GDREGISTER_CLASS(ResourceTableUtils);
-		GDREGISTER_CLASS(ResourceTableContainer);
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		GDREGISTER_INTERNAL_CLASS(ResourceTableName);
 		GDREGISTER_INTERNAL_CLASS(ResourceTableExportPlugin);
-		GDREGISTER_CLASS(ResourceTablesPlugin);
+		GDREGISTER_INTERNAL_CLASS(ResourceTableContainer);
+		GDREGISTER_INTERNAL_CLASS(ResourceTablesPlugin);
+		GDREGISTER_CLASS(ResourceTableUtils);
 		EditorPlugins::add_by_type<ResourceTablesPlugin>();
 	}
 }

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WeaponTuning" format=3 uid="uid://xx82vyqfy73l"]
+
+[ext_resource type="Script" uid="uid://15q0sd3w8xbi" path="res://ResourceTypes/WeaponTuning.gd" id="1_na3ak"]
+
+[resource]
+script = ExtResource("1_na3ak")
+physical_dmg = 25
+crit_boost = 2
+armor_bonus = 5

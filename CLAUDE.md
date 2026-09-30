@@ -8,14 +8,15 @@ A Godot 4 GDExtension (native C++ addon, built against `godot-cpp`), named `Reso
 It adds a "Resources" bottom panel to the editor (`ResourceTablesPlugin`) for browsing
 and editing `Resource` instances as spreadsheet-like tables.
 
-The panel has a single dropdown, labeled by an `Object` editor icon, listing (alphabetically, case-insensitive)
+The panel has a single dropdown, labeled by a `FileList` editor icon (with 8px left/right margins), listing (alphabetically, case-insensitive)
 every resource class name with at least one instance found anywhere under `res://` (a live scan, not a
 generated cache), plus every project/plugin global class deriving from `Resource` even with no instances, excluding `ResourceTable` types themselves (see below) -- showing every resource
-of that type project-wide. Each item's metadata is just the class name; a selection is tracked
+of that type project-wide, including instances of classes that inherit from it (only the selected
+type's own properties become columns). Each item's metadata is just the class name; a selection is tracked
 across refreshes by item text. `ResourceTableGenerator` scripts are not listed in it at all -- they
-only take part through the Tools menu's "Generate ResourceTables" and "New ResourceTable Generator...". The top row is laid out
+only take part through the Tools menu's "Run Generators (For Debugging)" and "New ResourceTable Generator...". The top row is laid out
 compacted to the left (labels/dropdowns/buttons sized to content, an expanding spacer control
-absorbing the rest) with the "Tools" `MenuButton` (New ResourceTable Generator.../Generate ResourceTables/Export/Import CSV) pinned to the
+absorbing the rest) with the "Tools" `MenuButton` (New ResourceTable Generator.../Run Generators (For Debugging)/Export/Import CSV) pinned to the
 right after that spacer; "Add" (creates a new resource of the dropdown's type via a plain save-file
 prompt) is a `Button` next to the dropdown.
 
@@ -370,8 +371,8 @@ then rebuilding. Dragging the boundary between two headers instead resizes that 
 
 Discovery/save primitives shared between the panel and `export_resource_tables.gd` live in
 `ResourceTableUtils` (`src/resource_table_utils.{h,cpp}`), a static-method-only class exposed to
-GDScript for exactly that reuse (`find_resources_of_type`, `find_generator_scripts`, `find_or_create`,
-`create_instance`, `find_safe_name`, etc.). Discovering *which scripts* are generators
+GDScript for exactly that reuse (`find_resources_of_type`, `find_generator_scripts`,
+`find_or_create_resource`, plus the CSV import/export calls). Discovering *which scripts* are generators
 (`find_generator_scripts()`) walks `ProjectSettings::get_global_class_list()` exactly the way
 resolving any other project global class name does elsewhere in this file (`_base_chain_inherits`,
 possibly through other project global classes in between, down to a real engine class -- here,
@@ -395,7 +396,7 @@ uses elsewhere in this file to sidestep that exact restriction doesn't work here
 *instance*, since there's no such persisted thing to find. Its `export_tables(modified_resource := "")` (a
 `Script` subclass, not an `EditorScript`, called via `script->call()` from `_run_export_tables`) runs every generator,
 or only those whose `_resource_class_name` is compatible with `modified_resource` when one is given. It's called with
-no argument for the "Generate ResourceTables" Tools-menu action, before a build (`EditorPlugin::_build()`), and game export (`ResourceTableExportPlugin`, an
+no argument for the "Run Generators (For Debugging)" Tools-menu action, before a build (`EditorPlugin::_build()`), and game export (`ResourceTableExportPlugin`, an
 `EditorExportPlugin` whose `_export_begin` calls back into the plugin). Automatic regeneration is per-generator: on
 `filesystem_changed`, `_sync_generators()` snapshots (path -> modified-time) every resource of each generator's
 `_resource_class_name` and calls `export_tables(class)` for each whose snapshot changed, or that has none yet (a

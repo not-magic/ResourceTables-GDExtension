@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="WeaponTuning" format=3 uid="uid://b814ynsio3bfk"]
+
+[ext_resource type="Script" uid="uid://15q0sd3w8xbi" path="res://ResourceTypes/WeaponTuning.gd" id="1_i00w4"]
+
+[resource]
+script = ExtResource("1_i00w4")
+physical_dmg = 1

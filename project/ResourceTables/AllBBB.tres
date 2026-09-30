@@ -1,6 +1,0 @@
-[gd_resource type="ResourceTable" script_class="GenericResourceTable" format=3 uid="uid://cjva1qvcyw7fl"]
-
-[ext_resource type="Script" uid="uid://ujdjn6ijlkef" path="res://addons/ResourceTables/GenericResourceTable.gd" id="1_0fdpp"]
-
-[resource]
-script = ExtResource("1_0fdpp")

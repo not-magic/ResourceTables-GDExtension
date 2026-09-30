@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ResourceTableUtils" inherits="Object" api_type="editor_extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="export_csv" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="resource_class_name" type="StringName" />
+			<param index="1" name="resource_paths" type="PackedStringArray" />
+			<param index="2" name="path" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="find_generator_scripts" qualifiers="static">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="find_or_create_resource" qualifiers="static">
+			<return type="Resource" />
+			<param index="0" name="class_name" type="StringName" />
+			<param index="1" name="path" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="find_resources_of_type" qualifiers="static">
+			<return type="Array" />
+			<param index="0" name="class_name" type="StringName" />
+			<description>
+			</description>
+		</method>
+		<method name="import_csv" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="resource_class_name" type="StringName" />
+			<param index="1" name="resource_paths" type="PackedStringArray" />
+			<param index="2" name="path" type="String" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>
