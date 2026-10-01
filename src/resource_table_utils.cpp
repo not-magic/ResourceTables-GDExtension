@@ -170,7 +170,13 @@ ResourceClassInfo resolve_resource_class_by_name(const StringName &p_class_name)
 	if (script.is_valid()) {
 		all_properties = script->get_script_property_list();
 	} else if (ClassDB::class_exists(p_class_name)) {
-		all_properties = ClassDB::class_get_property_list(p_class_name, /*p_no_inheritance=*/true);
+		std::vector<StringName> class_chain;
+		for (StringName class_name = p_class_name; class_name != StringName() && class_name != StringName("Resource"); class_name = ClassDB::get_parent_class(class_name)) {
+			class_chain.push_back(class_name);
+		}
+		for (auto it = class_chain.rbegin(); it != class_chain.rend(); ++it) {
+			all_properties.append_array(ClassDB::class_get_property_list(*it, /*p_no_inheritance=*/true));
+		}
 	} else {
 		return info;
 	}
