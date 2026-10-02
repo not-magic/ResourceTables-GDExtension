@@ -86,5 +86,5 @@ API docs are available in the wiki, or the built-in godot documentation browser
 
 ## License
 
-[MIT](LICENSE)
-Uses [csv-parser](https://github.com/vincentlaucsb/csv-parser), also licensed under MIT
+- [MIT](LICENSE)
+- Uses [csv-parser](https://github.com/vincentlaucsb/csv-parser), also licensed under MIT
