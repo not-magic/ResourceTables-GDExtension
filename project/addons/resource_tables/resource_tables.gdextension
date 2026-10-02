@@ -4,6 +4,8 @@ entry_symbol = "resource_tables_library_init"
 compatibility_minimum = "4.5"
 reloadable = true
 
+include_tags = ["editor"]
+
 [libraries]
 
 macos.editor = "./bin/libResourceTables.macos.editor.universal.dylib"
