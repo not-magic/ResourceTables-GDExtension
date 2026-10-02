@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef TOOLS_ENABLED
+
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/resource.hpp>
@@ -76,3 +78,5 @@ public:
 };
 
 } // namespace godot
+
+#endif // TOOLS_ENABLED

@@ -1,3 +1,5 @@
+#ifdef TOOLS_ENABLED
+
 #include "resource_tables_plugin.h"
 
 #include "resource_table_container.h"
@@ -895,3 +897,5 @@ void ResourceTablesPlugin::_on_revert_button_pressed(Ref<Resource> p_resource) {
 	}
 	_rebuild_table();
 }
+
+#endif // TOOLS_ENABLED

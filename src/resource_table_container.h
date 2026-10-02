@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef TOOLS_ENABLED
+
 #include <godot_cpp/classes/container.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -134,3 +136,5 @@ public:
 } // namespace godot
 
 VARIANT_ENUM_CAST(godot::ResourceTableContainer::SortDirection);
+
+#endif // TOOLS_ENABLED

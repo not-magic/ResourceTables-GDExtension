@@ -1,3 +1,5 @@
+#ifdef TOOLS_ENABLED
+
 #include "resource_table_utils.h"
 
 #include <godot_cpp/classes/class_db_singleton.hpp>
@@ -530,3 +532,5 @@ Error ResourceTableUtils::import_csv(const StringName &p_resource_class_name, co
 ResourceTableUtils::ImportPreview ResourceTableUtils::preview_import_csv(const StringName &p_resource_class_name, const PackedStringArray &p_resource_paths, const String &p_path) {
 	return run_csv_import(p_resource_class_name, p_resource_paths, p_path, /*p_execute=*/false);
 }
+
+#endif // TOOLS_ENABLED

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef TOOLS_ENABLED
+
 #include <godot_cpp/classes/editor_export_plugin.hpp>
 #include <godot_cpp/variant/callable.hpp>
 
@@ -22,3 +24,5 @@ public:
 };
 
 } // namespace godot
+
+#endif // TOOLS_ENABLED

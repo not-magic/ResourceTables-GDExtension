@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef TOOLS_ENABLED
+
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/resource.hpp>
@@ -54,3 +56,5 @@ public:
 };
 
 } // namespace godot
+
+#endif // TOOLS_ENABLED

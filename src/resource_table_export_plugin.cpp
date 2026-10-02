@@ -1,3 +1,5 @@
+#ifdef TOOLS_ENABLED
+
 #include "resource_table_export_plugin.h"
 
 using namespace godot;
@@ -15,3 +17,5 @@ void ResourceTableExportPlugin::_export_begin(const PackedStringArray &p_feature
 		generate_callback.call();
 	}
 }
+
+#endif // TOOLS_ENABLED

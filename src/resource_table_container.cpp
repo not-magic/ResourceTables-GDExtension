@@ -1,3 +1,5 @@
+#ifdef TOOLS_ENABLED
+
 #include "resource_table_container.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -801,3 +803,5 @@ void ResourceTableContainer::_gui_input(const Ref<InputEvent> &p_event) {
 	// input the way a body-row cell, e.g. a live EditorProperty, would).
 	_on_pan_input(p_event);
 }
+
+#endif // TOOLS_ENABLED

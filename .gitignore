@@ -27,6 +27,7 @@ docs/
 # Godot editor cache/import data
 project/.godot/
 project/icon.svg.import
+project/export_presets.cfg
 
 # Sublime local stuff
 *.sublime-workspace

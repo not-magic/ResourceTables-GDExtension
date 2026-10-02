@@ -1,21 +1,23 @@
 #include "register_types.h"
 
+#ifdef TOOLS_ENABLED
 #include "resource_table_container.h"
 #include "resource_table_export_plugin.h"
 #include "resource_table_name.h"
 #include "resource_table_utils.h"
 #include "resource_tables_plugin.h"
 
-#include <gdextension_interface.h>
 #include <godot_cpp/classes/editor_plugin_registration.hpp>
+#endif
+
+#include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
 using namespace godot;
 
-// godot-cpp only defines TOOLS_ENABLED for target=editor, so editor-only registration
-// isn't macro-guarded; it relies on the EDITOR init level only being reached in an editor.
 void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
+#ifdef TOOLS_ENABLED
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		GDREGISTER_INTERNAL_CLASS(ResourceTableName);
 		GDREGISTER_INTERNAL_CLASS(ResourceTableExportPlugin);
@@ -24,12 +26,15 @@ void initialize_resource_tables_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(ResourceTableUtils);
 		EditorPlugins::add_by_type<ResourceTablesPlugin>();
 	}
+#endif
 }
 
 void uninitialize_resource_tables_module(ModuleInitializationLevel p_level) {
+#ifdef TOOLS_ENABLED
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		EditorPlugins::remove_by_type<ResourceTablesPlugin>();
 	}
+#endif
 }
 
 extern "C" {

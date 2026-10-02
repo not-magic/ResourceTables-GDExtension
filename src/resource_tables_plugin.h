@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef TOOLS_ENABLED
+
 #include "resource_table_export_plugin.h"
 
 #include <godot_cpp/classes/editor_plugin.hpp>
@@ -106,3 +108,5 @@ public:
 };
 
 } // namespace godot
+
+#endif // TOOLS_ENABLED

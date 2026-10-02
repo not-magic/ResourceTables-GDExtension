@@ -1,3 +1,5 @@
+#ifdef TOOLS_ENABLED
+
 #include "resource_table_name.h"
 
 #include <godot_cpp/classes/dir_access.hpp>
@@ -316,3 +318,5 @@ void ResourceTableName::_on_duplicate_or_move_file_selected(String p_path) {
 
 	EditorInterface::get_singleton()->get_resource_filesystem()->scan();
 }
+
+#endif // TOOLS_ENABLED
