@@ -76,6 +76,9 @@ Unreal still needed a way to dynamically combine multiple `DataTables` into one 
 
 Installation should also appear on the Godot asset store eventually.
 
+## Compiling 
+
+This extension is built to be editor-only, which means you have to compile it with `scons target=editor` to produce the correct outputs
 
 ## API Documentation
 
