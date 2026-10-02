@@ -48,11 +48,11 @@ jobs:
             scons-ci-${{ matrix.platform }}-
 
       # Builds the extension and runs the standalone (no godot-cpp) test in
-      # tests/ in one pass. template_debug only: this is a compile/test
+      # tests/ in one pass. editor only: this is a compile/test
       # sanity check, not a release build (see release.yml for that).
       - name: Build and test
         env:
           SCONS_CACHE: ${{ github.workspace }}/.scons_cache
         run: |
-          scons platform=${{ matrix.platform }} target=template_debug
+          scons platform=${{ matrix.platform }} target=editor
           scons tests

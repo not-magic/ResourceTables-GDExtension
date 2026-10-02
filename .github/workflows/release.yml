@@ -1,6 +1,6 @@
 name: Release
 
-# Builds template_debug + template_release for linux/windows/macos, then
+# Builds the editor target for linux/windows/macos, then
 # packages project/addons/resource_tables/ (source-free, binaries for every
 # platform included) into a zip attached to a GitHub Release. The zip's
 # internal layout is addons/resource_tables/..., so it extracts directly
@@ -64,19 +64,12 @@ jobs:
           restore-keys: |
             scons-release-${{ matrix.platform }}-
 
-      # Runs the standalone (no godot-cpp) test in tests/ against template_debug
-      # as a sanity check before spending time on the release build.
-      - name: Build and test template_debug
+      - name: Build and test editor
         env:
           SCONS_CACHE: ${{ github.workspace }}/.scons_cache
         run: |
-          scons platform=${{ matrix.platform }} target=template_debug
+          scons platform=${{ matrix.platform }} target=editor
           scons tests
-
-      - name: Build template_release
-        env:
-          SCONS_CACHE: ${{ github.workspace }}/.scons_cache
-        run: scons platform=${{ matrix.platform }} target=template_release
 
       - name: Upload binaries
         uses: actions/upload-artifact@v7
